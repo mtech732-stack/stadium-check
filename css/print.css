@@ -1,0 +1,72 @@
+/* المطبوعة الرسمية — A4، ومعاينتها على الشاشة بالصنف .preview */
+
+#printView { display: none; }
+
+/* ــــ المعاينة على الشاشة ــــ */
+body.preview .topbar,
+body.preview main { display: none; }
+
+body.preview #printView {
+  display: block;
+  background: #fff;
+  color: #000;
+  max-width: 210mm;
+  margin: 14px auto 100px;
+  padding: 12mm 10mm;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+/* ــــ الطباعة ــــ */
+@page { size: A4 portrait; margin: 10mm 9mm; }
+
+@media print {
+  .topbar, main, .actionbar { display: none !important; }
+  html, body { background: #fff; padding: 0; margin: 0; }
+  #printView { display: block; }
+  a[href]:after { content: none !important; }
+}
+
+/* ــــ تنسيق المطبوعة ــــ */
+#printView { font-size: 9.5pt; line-height: 1.45; color: #000; }
+
+.p-head { text-align: center; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 10px; }
+.p-head .org { font-size: 10pt; letter-spacing: .3px; }
+.p-head h1 { font-size: 13pt; font-weight: 600; margin: 3px 0 0; }
+
+#printView table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+#printView th, #printView td { border: 0.6pt solid #000; padding: 3.5px 5px; vertical-align: middle; }
+
+.p-meta th.k { background: #eceff3; font-weight: 600; width: 15%; font-size: 9pt; text-align: right; }
+.p-meta td { width: 18.3%; }
+.p-meta td.strong { font-weight: 600; }
+
+.p-block { break-inside: auto; page-break-inside: auto; }
+.p-block h3 {
+  font-size: 10pt; font-weight: 600; margin: 8px 0 5px;
+  background: #eceff3; border: 0.6pt solid #000; padding: 3.5px 6px;
+}
+
+.p-items thead th { background: #f4f6f8; font-weight: 600; font-size: 8.5pt; text-align: center; }
+.p-items tr { break-inside: avoid; page-break-inside: avoid; }
+
+.p-items .c-n    { width: 4%;  text-align: center; }
+.p-items .c-q    { width: 42%; text-align: right; }
+.p-items .c-s    { width: 8%;  text-align: center; }
+.p-items .c-v    { width: 15%; text-align: center; }
+.p-items .c-note { width: 30%; text-align: right; font-size: 9pt; }
+.p-items .mark   { text-align: center; font-weight: 600; }
+
+.p-general { margin-top: 6px; }
+.p-general .lbl { font-size: 9pt; font-weight: 600; margin-bottom: 3px; }
+.p-general .box { border: 0.6pt solid #000; min-height: 46px; padding: 5px 6px; }
+
+.p-sign {
+  display: flex; gap: 22px; margin-top: 16px;
+  break-inside: avoid; page-break-inside: avoid;
+}
+.p-sign .sig { flex: 1; }
+.p-sign .role { font-size: 9pt; font-weight: 600; }
+.p-sign .name { font-size: 9.5pt; min-height: 16px; padding-top: 3px; }
+.p-sign .line { border-bottom: 0.8pt solid #000; margin: 16px 0 3px; }
+.p-sign .cap { font-size: 8.5pt; text-align: center; }
