@@ -159,7 +159,14 @@ function buildMeta() {
   };
 
   wrap.appendChild(field('النادي', clubSel));
-  wrap.appendChild(field('اسم الملعب', input('f_stadium', 'text', m.stadium, v => m.stadium = v), 'يُملأ تلقائياً وقابل للتعديل'));
+  /* قائمة الملاعب المقترحة — يُختار منها أو يُكتب اسم آخر */
+  const venues = el('datalist', { id: 'venues' });
+  VENUES.forEach(v => venues.appendChild(el('option', { value: v })));
+  wrap.appendChild(venues);
+
+  const stadium = input('f_stadium', 'text', m.stadium, v => m.stadium = v);
+  stadium.setAttribute('list', 'venues');
+  wrap.appendChild(field('اسم الملعب', stadium, 'يُملأ تلقائياً · أو اختر من القائمة'));
   wrap.appendChild(field('تاريخ الزيارة', input('f_date', 'date', m.date, v => {
     m.date = v; m.season = seasonOf(v); $('#f_season').value = m.season;
   })));
