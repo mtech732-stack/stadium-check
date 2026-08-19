@@ -84,5 +84,42 @@
 }
 .ed-add.small { font-size: 12.5px; padding: 7px 12px; }
 
+.ed-hint { font-size: 12.5px; color: var(--muted); padding: 10px 14px 0; line-height: 1.6; }
+
+.ed-check { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-top: 2px; cursor: pointer; }
+.ed-check input { width: 18px; height: 18px; }
+
+.ed-row { display: flex; gap: 8px; }
+.ed-field.half { flex: 1; min-width: 0; }
+
+.ed-club { display: flex; gap: 6px; margin-bottom: 6px; }
+.ed-club input { flex: 1; min-width: 0; font: inherit; font-size: 13.5px; padding: 7px 9px; border: 1px solid var(--line); border-radius: 8px; }
+.ed-club input:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px var(--navy-soft); }
+.ed-club button {
+  font: inherit; font-size: 13px; padding: 0 11px; flex: none;
+  border: 1px solid #f0d3d0; border-radius: 8px; background: #fff; color: var(--no); cursor: pointer;
+}
+
+.ed-field select {
+  width: 100%; font: inherit; font-size: 14.5px;
+  padding: 9px 10px; border: 1px solid var(--line); border-radius: 9px; background: #fff;
+}
+
+.ed-p { margin: 0 0 9px; font-size: 13.5px; line-height: 1.7; }
+.ed-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+.ed-actions button {
+  font: inherit; font-size: 13px; padding: 10px 14px;
+  border: 1px solid var(--line); border-radius: 9px;
+  background: #fff; color: var(--navy); cursor: pointer;
+}
+#edCopy { background: var(--navy); color: #fff; border-color: var(--navy); font-weight: 600; }
+
+.ed-out { margin-top: 10px; }
+.ed-out[hidden] { display: none; }
+.ed-out textarea {
+  width: 100%; min-height: 220px; font-family: ui-monospace, monospace;
+  font-size: 12.5px; padding: 10px; border: 1px solid var(--line); border-radius: 9px;
+}
+
 #edReset { color: var(--no); border-color: #f0d3d0; }
 .ed-custom { color: var(--fix); font-weight: 600; }

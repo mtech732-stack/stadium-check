@@ -32,14 +32,14 @@
   /* جدول بيانات الزيارة */
   function metaTable() {
     const m = state.meta;
-    const cells = [
-      ['النادي', dash(m.club)],
-      ['اسم الملعب', dash(m.stadium)],
-      ['الموسم الرياضي', dash(m.season)],
-      ['تاريخ الزيارة', fmtDate(m.date)],
-      ['وقت الزيارة', fmtTime(m.time)],
-      ['الفاحص / مراقب المباريات', dash(m.inspector)]
-    ];
+    const value = f => {
+      if (f.id === 'date') return fmtDate(m.date);
+      if (f.id === 'time') return fmtTime(m.time);
+      if (f.id in m) return dash(m[f.id]);
+      if (f.type === 'date') return fmtDate((m.extra || {})[f.id]);
+      return dash((m.extra || {})[f.id]);
+    };
+    const cells = FIELDS.filter(f => f.enabled !== false).map(f => [f.label, value(f)]);
     const tb = P('tbody');
     for (let i = 0; i < cells.length; i += 3) {
       const row = P('tr');

@@ -8,6 +8,18 @@ const DEFAULT_META = {
   shortTitle: 'نموذج فحص واعتماد الملعب الرئيسي'
 };
 
+/* حقول بيانات الزيارة.
+   الحقول الأصلية لها سلوك مترابط (النادي يملأ الملعب، والموسم يُشتقّ من التاريخ)،
+   فتُعدَّل تسمياتها وتُخفى، ولا يتغيّر سلوكها. والحقول المضافة نصّية أو تاريخ أو رقم. */
+const DEFAULT_FIELDS = [
+  { id: 'club',      label: 'النادي',                   type: 'club',   enabled: true, builtin: true },
+  { id: 'stadium',   label: 'اسم الملعب',               type: 'venue',  enabled: true, builtin: true },
+  { id: 'date',      label: 'تاريخ الزيارة',            type: 'date',   enabled: true, builtin: true },
+  { id: 'time',      label: 'وقت الزيارة',              type: 'time',   enabled: true, builtin: true },
+  { id: 'season',    label: 'الموسم الرياضي',           type: 'season', enabled: true, builtin: true },
+  { id: 'inspector', label: 'الفاحص / مراقب المباريات', type: 'text',   enabled: true, builtin: true }
+];
+
 /* ثلاث حالات — أُلغي N/A من النموذج كلّه (الشاشة والمطبوعة)،
    وحلّ محلّه زرّ «ملاحظة» يفتح حقل النصّ لأيّ بند. */
 const STATUSES = [

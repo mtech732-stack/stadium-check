@@ -31,7 +31,8 @@ function blankReport(id) {
       inspector: prefs.inspector,
       decision: '',   /* تجاوز يدوي لحالة الاعتماد؛ فارغ = يُؤخذ الاقتراح الآلي */
       recheck: '',
-      general: ''
+      general: '',
+      extra: {}   /* قيم الحقول المضافة من صفحة التعديل */
     },
     items: {},  /* "1.3": { s: 'fix', note: '...' } */
     nums: {},   /* قيم رقمية داخل البنود، مثل السعة الجماهيرية */
@@ -48,6 +49,7 @@ function normalize(r, id) {
   if (!r.meas) r.meas = {};
   if (!r.savedAt) r.savedAt = 0;
   ['decision', 'recheck', 'general'].forEach(k => { if (!(k in r.meta)) r.meta[k] = ''; });
+  if (!r.meta.extra || typeof r.meta.extra !== 'object') r.meta.extra = {};
   /* ترحيل المفاتيح الموضعية القديمة (3.5) إلى المعرّفات الثابتة (i-3-5) */
   Object.keys(r.items).forEach(k => {
     const m = k.match(/^(\d+)\.(\d+)$/);
@@ -163,24 +165,51 @@ function buildMeta() {
     return i;
   };
 
-  wrap.appendChild(field('النادي', clubSel));
   /* قائمة الملاعب المقترحة — يُختار منها أو يُكتب اسم آخر */
   const venues = el('datalist', { id: 'venues' });
   VENUES.forEach(v => venues.appendChild(el('option', { value: v })));
   wrap.appendChild(venues);
 
-  const stadium = input('f_stadium', 'text', m.stadium, v => m.stadium = v);
-  stadium.setAttribute('list', 'venues');
-  wrap.appendChild(field('اسم الملعب', stadium, 'يُملأ تلقائياً · أو اختر من القائمة'));
-  wrap.appendChild(field('تاريخ الزيارة', input('f_date', 'date', m.date, v => {
-    m.date = v; m.season = seasonOf(v); $('#f_season').value = m.season;
-  })));
-  wrap.appendChild(field('وقت الزيارة', input('f_time', 'time', m.time, v => m.time = v)));
-  const season = el('input', { id: 'f_season', type: 'text', value: m.season, readonly: 'readonly' });
-  wrap.appendChild(field('الموسم الرياضي', season, 'يُشتقّ من التاريخ'));
-  wrap.appendChild(field('الفاحص / مراقب المباريات',
-    input('f_inspector', 'text', m.inspector, v => m.inspector = v),
-    'يُحفظ ويظهر في كلّ تقرير', true));
+  /* الحقول تُبنى من تعريف النموذج، فتعديل تسمية أو إخفاء حقل يسري هنا وفي المطبوعة */
+  FIELDS.filter(f => f.enabled !== false).forEach(f => {
+    if (f.id === 'club') {
+      wrap.appendChild(field(f.label, clubSel));
+      return;
+    }
+    if (f.id === 'stadium') {
+      const stadium = input('f_stadium', 'text', m.stadium, v => m.stadium = v);
+      stadium.setAttribute('list', 'venues');
+      wrap.appendChild(field(f.label, stadium, 'يُملأ تلقائياً · أو اختر من القائمة'));
+      return;
+    }
+    if (f.id === 'date') {
+      wrap.appendChild(field(f.label, input('f_date', 'date', m.date, v => {
+        m.date = v; m.season = seasonOf(v);
+        const s = $('#f_season'); if (s) s.value = m.season;
+      })));
+      return;
+    }
+    if (f.id === 'time') {
+      wrap.appendChild(field(f.label, input('f_time', 'time', m.time, v => m.time = v)));
+      return;
+    }
+    if (f.id === 'season') {
+      const season = el('input', { id: 'f_season', type: 'text', value: m.season, readonly: 'readonly' });
+      wrap.appendChild(field(f.label, season, 'يُشتقّ من التاريخ'));
+      return;
+    }
+    if (f.id === 'inspector') {
+      wrap.appendChild(field(f.label,
+        input('f_inspector', 'text', m.inspector, v => m.inspector = v),
+        'يُحفظ ويظهر في كلّ تقرير', true));
+      return;
+    }
+    /* حقل مضاف من صفحة التعديل */
+    wrap.appendChild(field(f.label,
+      input('f_' + f.id, f.type === 'number' ? 'number' : (f.type === 'date' ? 'date' : 'text'),
+        m.extra[f.id], v => m.extra[f.id] = v),
+      null, f.type === 'text'));
+  });
 }
 
 /* ــــ بنود الفحص ــــ */
@@ -521,6 +550,9 @@ function refreshTally() {
 }
 
 /* ــــ الإقلاع ــــ */
+
+$('#appTitle').textContent = FORM_META.shortTitle || FORM_META.title;
+document.title = (FORM_META.shortTitle || FORM_META.title) + ' — ' + FORM_META.org;
 
 buildMeta();
 buildSections();

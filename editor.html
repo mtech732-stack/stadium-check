@@ -31,7 +31,27 @@
     </div>
   </section>
 
+  <div id="edHeader"></div>
+  <div id="edFields"></div>
   <div id="edSections"></div>
+  <div id="edMeas"></div>
+  <div id="edClubs"></div>
+
+  <section class="card">
+    <header><h2>إرسال التعديلات</h2></header>
+    <div class="body">
+      <p class="ed-p">حين تنتهي، اضغط <strong>«نسخ التعديلات»</strong> — يُنسخ لك <strong>ملخّص ما غيّرته</strong> نصّاً، ترسله في الواتساب لتُثبَّت في النموذج الرئيسي فتصل إلى كلّ الأجهزة.</p>
+      <p class="ed-p">و<strong>«تنزيل ملفّ النموذج»</strong> يحفظ نسختك كاملة، للنقل بين الأجهزة أو للاحتياط.</p>
+      <div class="ed-actions">
+        <button type="button" id="edCopy">نسخ التعديلات</button>
+        <button type="button" id="edShow">إظهار النصّ</button>
+        <button type="button" id="edDownload">تنزيل ملفّ النموذج</button>
+        <button type="button" id="edImport">استيراد ملفّ</button>
+        <input type="file" id="edFile" accept="application/json,.json" hidden>
+      </div>
+      <div class="ed-out" id="edOut" hidden></div>
+    </div>
+  </section>
 </main>
 
 <div class="actionbar">

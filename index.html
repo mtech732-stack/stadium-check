@@ -18,7 +18,7 @@
 <div class="topbar">
   <div class="inner">
     <div class="titlerow">
-      <h1>نموذج فحص واعتماد الملعب الرئيسي</h1>
+      <h1 id="appTitle">نموذج فحص واعتماد الملعب الرئيسي</h1>
       <button type="button" id="btnArchive">الأرشيف</button>
     </div>
     <div class="sub" id="count">0 من 37 بنداً</div>
@@ -86,7 +86,9 @@
 <script src="js/print.js"></script>
 <script src="js/archive.js"></script>
 <script>
-if ('serviceWorker' in navigator) {
+/* التخزين للعمل دون إنترنت — يُعطَّل على الحاسوب المحلّي أثناء التطوير
+   كي لا تُقدَّم نسخة قديمة مخزّنة بدل الملفّات المعدَّلة. */
+if ('serviceWorker' in navigator && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }
 </script>

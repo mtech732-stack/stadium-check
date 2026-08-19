@@ -13,6 +13,7 @@ function defaultForm() {
   return {
     v: 1,
     meta: JSON.parse(JSON.stringify(DEFAULT_META)),
+    fields: JSON.parse(JSON.stringify(DEFAULT_FIELDS)),
     sections: DEFAULT_SECTIONS.map((sec, si) => ({
       id: 's-' + (si + 1),
       title: sec.title,
@@ -64,6 +65,14 @@ function loadForm() {
 
   /* ترقيع الحقول الناقصة كي لا يسقط التطبيق مع نموذج قديم */
   if (!Array.isArray(saved.venues)) saved.venues = saved.clubs.map(c => c.stadium);
+  if (!Array.isArray(saved.fields) || !saved.fields.length) {
+    saved.fields = JSON.parse(JSON.stringify(DEFAULT_FIELDS));
+  } else {
+    /* أيّ حقل أصلي مفقود يُعاد، فبعضه يحمل سلوكاً لا يُستغنى عنه */
+    DEFAULT_FIELDS.forEach(def => {
+      if (!saved.fields.some(f => f.id === def.id)) saved.fields.push(JSON.parse(JSON.stringify(def)));
+    });
+  }
   saved.sections.forEach(sec => sec.items.forEach(it => {
     if (!Array.isArray(it.phrases)) it.phrases = [];
     if (!it.id) it.id = newFormId('i');
@@ -89,6 +98,7 @@ function isFormCustomized() {
 /* النموذج الفعّال + الأسماء التي يستعملها بقيّة التطبيق */
 var FORM = loadForm();
 var FORM_META = FORM.meta;
+var FIELDS = FORM.fields;
 var SECTIONS = FORM.sections;
 var MEASUREMENTS = FORM.measurements;
 var CLUBS = FORM.clubs;
