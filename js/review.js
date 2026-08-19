@@ -83,10 +83,10 @@ function build() {
   SECTIONS.forEach(sec => {
     const body = el('div', { class: 'body' });
     sec.items.forEach(it => {
-      const key = `${sec.id}.${it.n}`;
+      const key = it.id;
       body.appendChild(el('div', { class: 'item' }, [
         el('div', { class: 'q' }, [
-          el('b', { text: `${sec.id}/${it.n}` }),
+          el('b', { text: sec._n + '/' + it._n }),
           el('span', { text: it.text })
         ]),
         noteBox(() => state.notes[key], v => state.notes[key] = v, 'ملاحظتك على هذا البند')
@@ -95,7 +95,7 @@ function build() {
 
     root.appendChild(el('section', { class: 'card' }, [
       el('header', {}, [
-        el('div', { class: 'num', text: String(sec.id) }),
+        el('div', { class: 'num', text: String(sec._n) }),
         el('h2', { text: sec.title })
       ]),
       body
@@ -123,12 +123,12 @@ function buildText() {
   lines.push('');
 
   SECTIONS.forEach(sec => {
-    const wrote = sec.items.filter(it => (state.notes[`${sec.id}.${it.n}`] || '').trim());
+    const wrote = sec.items.filter(it => (state.notes[it.id] || '').trim());
     if (!wrote.length) return;
-    lines.push(`— المحور ${sec.id}: ${sec.title}`);
+    lines.push('— المحور ' + sec._n + ': ' + sec.title);
     wrote.forEach(it => {
-      const key = `${sec.id}.${it.n}`;
-      lines.push(`[${sec.id}/${it.n}] ${it.text}`);
+      const key = it.id;
+      lines.push('[' + sec._n + '/' + it._n + '] ' + it.text);
       lines.push(`    ← ${state.notes[key].trim().replace(/\n+/g, ' ')}`);
     });
     lines.push('');

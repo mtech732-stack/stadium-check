@@ -48,6 +48,11 @@ function normalize(r, id) {
   if (!r.meas) r.meas = {};
   if (!r.savedAt) r.savedAt = 0;
   ['decision', 'recheck', 'general'].forEach(k => { if (!(k in r.meta)) r.meta[k] = ''; });
+  /* ترحيل المفاتيح الموضعية القديمة (3.5) إلى المعرّفات الثابتة (i-3-5) */
+  Object.keys(r.items).forEach(k => {
+    const m = k.match(/^(\d+)\.(\d+)$/);
+    if (m) { r.items['i-' + m[1] + '-' + m[2]] = r.items[k]; delete r.items[k]; }
+  });
   Object.values(r.items).forEach(x => { if (x.s === 'na') x.s = ''; });
   return r;
 }
@@ -180,8 +185,8 @@ function buildMeta() {
 
 /* ــــ بنود الفحص ــــ */
 
-function buildItem(sectionId, item) {
-  const key = `${sectionId}.${item.n}`;
+function buildItem(sec, item) {
+  const key = item.id;
   const rec = state.items[key] || (state.items[key] = { s: '', note: '' });
 
   const autoOpen = () => rec.s === 'fix' || rec.s === 'no' || !!rec.note;
@@ -251,7 +256,7 @@ function buildItem(sectionId, item) {
   syncNote();
 
   const kids = [
-    el('div', { class: 'q' }, [el('b', { text: item.n + '.' }), el('span', { text: item.text })])
+    el('div', { class: 'q' }, [el('b', { text: item._n + "." }), el('span', { text: item.text })])
   ];
 
   /* بند يحمل قيمة رقمية (مثل السعة الجماهيرية) */
@@ -274,12 +279,12 @@ function buildSections() {
   const main = $('#sections');
   SECTIONS.forEach(sec => {
     const head = el('header', {}, [
-      el('div', { class: 'num', text: String(sec.id) }),
+      el('div', { class: 'num', text: String(sec._n) }),
       el('h2', { text: sec.title }),
       el('div', { class: 'badge', id: 'sb' + sec.id, text: '' })
     ]);
     const body = el('div', { class: 'body' });
-    sec.items.forEach(it => body.appendChild(buildItem(sec.id, it)));
+    sec.items.forEach(it => body.appendChild(buildItem(sec, it)));
     main.appendChild(el('section', { class: 'card' }, [head, body]));
   });
 }
@@ -390,8 +395,8 @@ function buildSummary() {
   missBtn.onclick = () => {
     for (const sec of SECTIONS) {
       for (const it of sec.items) {
-        if (!(state.items[`${sec.id}.${it.n}`] || {}).s) {
-          const node = document.querySelector(`[data-key="${sec.id}.${it.n}"]`);
+        if (!(state.items[it.id] || {}).s) {
+          const node = document.querySelector(`[data-key=""]`);
           if (node) {
             /* حساب يدوي للموضع: أدقّ من scrollIntoView مع الشريط العلوي الثابت */
             const y = node.getBoundingClientRect().top + window.scrollY - 130;
@@ -500,7 +505,7 @@ function refreshTally() {
 
   /* عدّاد لكلّ محور — يكشف المحور الناقص بنظرة */
   SECTIONS.forEach(sec => {
-    const done = sec.items.filter(it => (state.items[`${sec.id}.${it.n}`] || {}).s).length;
+    const done = sec.items.filter(it => (state.items[it.id] || {}).s).length;
     const badge = $('#sb' + sec.id);
     if (!badge) return;
     badge.textContent = `${done} / ${sec.items.length}`;

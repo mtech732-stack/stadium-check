@@ -65,14 +65,14 @@
 
     const tb = P('tbody');
     sec.items.forEach(it => {
-      const rec = state.items[`${sec.id}.${it.n}`] || { s: '', note: '' };
+      const rec = state.items[it.id] || { s: '', note: '' };
       let q = it.text;
       if (it.num) {
         const v = state.nums[it.num.id];
         q += `  (${it.num.label}: ${dash(v)} ${it.num.unit})`;
       }
       tb.appendChild(P('tr', {}, [
-        P('td', { text: String(it.n), class: 'c-n' }),
+        P('td', { text: String(it._n), class: 'c-n' }),
         P('td', { text: q, class: 'c-q' }),
         P('td', { text: rec.s === 'ok' ? '✓' : '', class: 'c-s mark' }),
         P('td', { text: rec.s === 'fix' ? '✓' : '', class: 'c-s mark' }),
@@ -82,7 +82,7 @@
     });
 
     return P('section', { class: 'p-block' }, [
-      P('h3', { text: `${sec.id}. ${sec.title}` }),
+      P('h3', { text: sec._n + '. ' + sec.title }),
       P('table', { class: 'p-items' }, [P('thead', {}, [head]), tb])
     ]);
   }
@@ -168,8 +168,8 @@
     root.textContent = '';
 
     root.appendChild(P('header', { class: 'p-head' }, [
-      P('div', { class: 'org', text: 'الاتحاد الكويتي لكرة القدم' }),
-      P('h1', { text: 'نموذج فحص واعتماد الملعب الرئيسي للأندية الكويتية' })
+      P('div', { class: 'org', text: FORM_META.org }),
+      P('h1', { text: FORM_META.title })
     ]));
 
     root.appendChild(metaTable());

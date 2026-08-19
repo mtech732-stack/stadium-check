@@ -1,0 +1,71 @@
+/* صفحة تعديل النموذج */
+
+.ed-back, .ed-open {
+  font: inherit; font-size: 12.5px; padding: 5px 11px; flex: none;
+  border-radius: 8px; text-decoration: none; cursor: pointer;
+}
+.ed-back {
+  background: rgba(255, 255, 255, .16); color: #fff;
+  border: 1px solid rgba(255, 255, 255, .3);
+}
+.ed-open {
+  background: var(--navy); color: #fff; border: 1px solid var(--navy);
+  font-size: 13px; font-weight: 600; padding: 9px 14px;
+}
+
+.ed-note p { margin: 0 0 9px; font-size: 13.5px; line-height: 1.7; }
+.ed-note p:last-child { margin-bottom: 0; }
+
+.ed-field { margin-bottom: 12px; }
+.ed-field > label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.ed-field input, .ed-field textarea {
+  width: 100%; font: inherit; font-size: 14.5px;
+  padding: 9px 10px; border: 1px solid var(--line); border-radius: 9px;
+  background: #fff; resize: vertical;
+}
+.ed-field input:focus, .ed-field textarea:focus {
+  outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px var(--navy-soft);
+}
+
+.ed-item {
+  border: 1px solid var(--line); border-radius: 12px;
+  padding: 11px 12px; margin-bottom: 10px; background: #fbfcfd;
+}
+.ed-item > .head {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+}
+.ed-item > .head .no {
+  width: 24px; height: 24px; border-radius: 7px; flex: none;
+  background: var(--navy-soft); color: var(--navy);
+  font-size: 12.5px; font-weight: 600; display: grid; place-items: center;
+}
+.ed-item > .head .sp { flex: 1; }
+
+.ed-tools { display: flex; gap: 5px; }
+.ed-tools button {
+  font: inherit; font-size: 12px; padding: 5px 9px;
+  border: 1px solid var(--line); border-radius: 7px;
+  background: #fff; color: var(--navy); cursor: pointer;
+}
+.ed-tools button.danger { color: var(--no); border-color: #f0d3d0; }
+.ed-tools button:disabled { opacity: .35; cursor: default; }
+
+.ed-sub { font-size: 12px; color: var(--muted); margin: 10px 0 6px; }
+
+.ed-phrase { display: flex; gap: 6px; margin-bottom: 6px; }
+.ed-phrase input { flex: 1; min-width: 0; font: inherit; font-size: 13.5px; padding: 7px 9px; border: 1px solid var(--line); border-radius: 8px; }
+.ed-phrase input:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px var(--navy-soft); }
+.ed-phrase button {
+  font: inherit; font-size: 12px; padding: 0 10px; flex: none;
+  border: 1px solid #f0d3d0; border-radius: 8px; background: #fff; color: var(--no); cursor: pointer;
+}
+
+.ed-add {
+  font: inherit; font-size: 13px; padding: 9px 14px;
+  border: 1px dashed #c9d3dd; border-radius: 9px;
+  background: #f8fafc; color: var(--navy); cursor: pointer; width: 100%;
+}
+.ed-add.small { font-size: 12.5px; padding: 7px 12px; }
+
+#edReset { color: var(--no); border-color: #f0d3d0; }
+.ed-custom { color: var(--fix); font-weight: 600; }

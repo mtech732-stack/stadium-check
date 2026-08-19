@@ -330,6 +330,10 @@ button.link[hidden] { display: none; }
 }
 #summaryBody textarea:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px var(--navy-soft); }
 
+.foot-link { text-align: center; margin: 4px 0 18px; }
+.foot-link a { font-size: 13px; color: var(--muted); text-decoration: none; }
+.foot-link a:active { color: var(--navy); }
+
 /* ــــ شريط الحفظ ــــ */
 .actionbar {
   position: fixed;

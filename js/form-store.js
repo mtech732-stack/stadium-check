@@ -1,0 +1,95 @@
+/* طبقة النموذج: تجمع بين النسخة الأصلية في data.js وتعديلات المستخدم المحفوظة.
+   كلّ ما بعدها في التطبيق يقرأ من هنا، لا من data.js مباشرة. */
+
+const KEY_FORM = 'sc.form';
+
+/* معرّف ثابت لكلّ بند ومحور — لا يتغيّر بالحذف ولا بإعادة الترتيب،
+   فتبقى إجابات التقارير القديمة مرتبطة ببندها الصحيح. */
+function newFormId(prefix) {
+  return prefix + '-' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36);
+}
+
+function defaultForm() {
+  return {
+    v: 1,
+    meta: JSON.parse(JSON.stringify(DEFAULT_META)),
+    sections: DEFAULT_SECTIONS.map((sec, si) => ({
+      id: 's-' + (si + 1),
+      title: sec.title,
+      items: sec.items.map((it, ii) => {
+        const copy = {
+          id: 'i-' + (si + 1) + '-' + (ii + 1),
+          text: it.text,
+          phrases: (it.phrases || []).slice()
+        };
+        if (it.num) copy.num = JSON.parse(JSON.stringify(it.num));
+        return copy;
+      })
+    })),
+    measurements: JSON.parse(JSON.stringify(DEFAULT_MEASUREMENTS)),
+    clubs: JSON.parse(JSON.stringify(DEFAULT_CLUBS)),
+    venues: DEFAULT_VENUES.slice()
+  };
+}
+
+/* ترقيم العرض يُشتقّ من الترتيب لا من المعرّف — فالحذف والإضافة لا يتركان فجوات. */
+function annotateForm(form) {
+  form.sections.forEach((sec, si) => {
+    sec._n = si + 1;
+    sec.items.forEach((it, ii) => { it._n = ii + 1; });
+  });
+  return form;
+}
+
+function stripRuntime(form) {
+  const copy = JSON.parse(JSON.stringify(form));
+  copy.sections.forEach(sec => {
+    delete sec._n;
+    sec.items.forEach(it => delete it._n);
+  });
+  return copy;
+}
+
+/* التحقّق من سلامة نموذج محفوظ قبل اعتماده — نموذج معطوب يعطّل التطبيق كلّه. */
+function validForm(f) {
+  return !!(f && f.meta && Array.isArray(f.sections) && f.sections.length &&
+    f.sections.every(s => s.id && typeof s.title === 'string' && Array.isArray(s.items)) &&
+    Array.isArray(f.measurements) && Array.isArray(f.clubs));
+}
+
+function loadForm() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(KEY_FORM)); } catch (e) { saved = null; }
+  if (!validForm(saved)) return annotateForm(defaultForm());
+
+  /* ترقيع الحقول الناقصة كي لا يسقط التطبيق مع نموذج قديم */
+  if (!Array.isArray(saved.venues)) saved.venues = saved.clubs.map(c => c.stadium);
+  saved.sections.forEach(sec => sec.items.forEach(it => {
+    if (!Array.isArray(it.phrases)) it.phrases = [];
+    if (!it.id) it.id = newFormId('i');
+  }));
+  return annotateForm(saved);
+}
+
+function saveForm(form) {
+  try {
+    localStorage.setItem(KEY_FORM, JSON.stringify(stripRuntime(form)));
+    return true;
+  } catch (e) { return false; }
+}
+
+function resetForm() {
+  try { localStorage.removeItem(KEY_FORM); } catch (e) { /* لا شيء */ }
+}
+
+function isFormCustomized() {
+  try { return !!localStorage.getItem(KEY_FORM); } catch (e) { return false; }
+}
+
+/* النموذج الفعّال + الأسماء التي يستعملها بقيّة التطبيق */
+var FORM = loadForm();
+var FORM_META = FORM.meta;
+var SECTIONS = FORM.sections;
+var MEASUREMENTS = FORM.measurements;
+var CLUBS = FORM.clubs;
+var VENUES = FORM.venues;

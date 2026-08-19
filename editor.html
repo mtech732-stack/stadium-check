@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#123a63">
+<title>تعديل النموذج</title>
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/editor.css">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="inner">
+    <div class="titlerow">
+      <h1>تعديل النموذج</h1>
+      <a class="ed-back" href="index.html">التطبيق</a>
+    </div>
+    <div class="sub" id="edState">النموذج الأصلي</div>
+  </div>
+</div>
+
+<main>
+  <section class="card ed-note">
+    <header><h2>عيّنة للاعتماد — المحور الأول</h2></header>
+    <div class="body">
+      <p>هذه <strong>عيّنة</strong> لتراجع طريقة التعديل قبل أن أعمّمها على المحاور الثمانية. عدّل ما تشاء هنا وافتح التطبيق لترى الأثر مباشرة.</p>
+      <p>كلّ تعديل <strong>يُحفظ في جهازك فوراً</strong>، ولك أن تعيد النموذج إلى أصله متى شئت من الزرّ الأسفل.</p>
+    </div>
+  </section>
+
+  <div id="edSection"></div>
+</main>
+
+<div class="actionbar">
+  <span class="saved" id="edSaved">تُحفظ تلقائياً</span>
+  <button type="button" id="edReset">استعادة الأصل</button>
+  <a class="ed-open" href="index.html">افتح التطبيق</a>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/form-store.js"></script>
+<script src="js/editor.js"></script>
+</body>
+</html>
