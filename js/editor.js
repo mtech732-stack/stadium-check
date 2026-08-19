@@ -1,5 +1,5 @@
-/* تعديل النموذج — عيّنة الخطوة ٦أ: المحور الأول وحده.
-   البنود تُعرّف بمعرّف ثابت، فالحذف وإعادة الترتيب لا يمسّان التقارير المحفوظة. */
+/* تعديل النموذج — المحاور الثمانية وبنودها كلّها.
+   البنود والمحاور تُعرّف بمعرّف ثابت، فالحذف وإعادة الترتيب لا يمسّان التقارير المحفوظة. */
 
 const $ = s => document.querySelector(s);
 
@@ -15,6 +15,9 @@ const el = (tag, attrs, kids) => {
 
 function pad(n) { return String(n).padStart(2, '0'); }
 
+/* المحور المفتوح حالياً — يُحفظ ليبقى مفتوحاً بعد إعادة الرسم */
+let openSection = null;
+
 let timer = null;
 function persist(rerender) {
   clearTimeout(timer);
@@ -25,24 +28,24 @@ function persist(rerender) {
       ? `<b style="color:var(--ok)">حُفظ</b> · ${pad(now.getHours())}:${pad(now.getMinutes())}`
       : 'تعذّر الحفظ في هذا المتصفّح';
     refreshState();
-    if (rerender) render();
+    if (rerender) {
+      const y = window.scrollY;
+      render();
+      window.scrollTo(0, y);
+    }
   }, 250);
 }
 
 function refreshState() {
-  const s = $('#edState');
-  if (isFormCustomized()) {
-    s.innerHTML = '<span class="ed-custom">نموذج معدَّل</span> — يختلف عن الأصل';
-  } else {
-    s.textContent = 'النموذج الأصلي';
-  }
+  const items = FORM.sections.reduce((a, s) => a + s.items.length, 0);
+  const label = `${FORM.sections.length} محاور · ${items} بنداً`;
+  $('#edState').innerHTML = isFormCustomized()
+    ? `<span class="ed-custom">نموذج معدَّل</span> — ${label}`
+    : `النموذج الأصلي — ${label}`;
 }
 
-/* حقل نصّي يحفظ عند كلّ حرف */
 function textField(label, value, onChange, multiline) {
-  const input = multiline
-    ? el('textarea', { rows: '3' })
-    : el('input', { type: 'text' });
+  const input = multiline ? el('textarea', { rows: '3' }) : el('input', { type: 'text' });
   input.value = value || '';
   input.oninput = () => { onChange(input.value); persist(false); };
   return el('div', { class: 'ed-field' }, [
@@ -51,42 +54,61 @@ function textField(label, value, onChange, multiline) {
   ].filter(Boolean));
 }
 
-function buildItem(sec, item, idx) {
-  const tools = el('div', { class: 'ed-tools' });
+/* أزرار الترتيب والحذف — مشتركة بين المحور والبند */
+function tools(list, idx, onChange, delMsg, extraClass) {
+  const box = el('div', { class: 'ed-tools' + (extraClass ? ' ' + extraClass : '') });
 
-  const up = el('button', { type: 'button', text: '▲', title: 'أعلى' });
+  const up = el('button', { type: 'button', text: '▲', 'aria-label': 'تحريك لأعلى' });
   up.disabled = idx === 0;
-  up.onclick = () => {
-    sec.items.splice(idx - 1, 0, sec.items.splice(idx, 1)[0]);
-    annotateForm(FORM); persist(true);
+  up.onclick = ev => {
+    ev.stopPropagation();
+    list.splice(idx - 1, 0, list.splice(idx, 1)[0]);
+    onChange();
   };
 
-  const down = el('button', { type: 'button', text: '▼', title: 'أسفل' });
-  down.disabled = idx === sec.items.length - 1;
-  down.onclick = () => {
-    sec.items.splice(idx + 1, 0, sec.items.splice(idx, 1)[0]);
-    annotateForm(FORM); persist(true);
+  const down = el('button', { type: 'button', text: '▼', 'aria-label': 'تحريك لأسفل' });
+  down.disabled = idx === list.length - 1;
+  down.onclick = ev => {
+    ev.stopPropagation();
+    list.splice(idx + 1, 0, list.splice(idx, 1)[0]);
+    onChange();
   };
 
   const del = el('button', { type: 'button', class: 'danger', text: 'حذف' });
-  del.onclick = () => {
-    if (!confirm('حذف هذا البند من النموذج؟ الإجابات المسجّلة عليه في التقارير القديمة تبقى محفوظة ولا تظهر.')) return;
-    sec.items.splice(idx, 1);
-    annotateForm(FORM); persist(true);
+  del.onclick = ev => {
+    ev.stopPropagation();
+    if (!confirm(delMsg)) return;
+    list.splice(idx, 1);
+    onChange();
   };
 
-  tools.appendChild(up); tools.appendChild(down); tools.appendChild(del);
+  box.appendChild(up); box.appendChild(down); box.appendChild(del);
+  return box;
+}
 
+function structuralChange() {
+  annotateForm(FORM);
+  persist(true);
+}
+
+function buildItem(sec, item, idx) {
   const head = el('div', { class: 'head' }, [
     el('div', { class: 'no', text: String(item._n) }),
     el('div', { class: 'sp' }),
-    tools
+    tools(sec.items, idx, structuralChange,
+      'حذف هذا البند من النموذج؟ الإجابات المسجّلة عليه في التقارير القديمة تبقى محفوظة ولا تظهر.')
   ]);
 
   const body = el('div', {}, [
-    textField('نصّ البند', item.text, v => item.text = v, true),
-    el('div', { class: 'ed-sub', text: 'العبارات الجاهزة' })
+    textField('نصّ البند', item.text, v => item.text = v, true)
   ]);
+
+  if (item.num) {
+    body.appendChild(el('div', { class: 'ed-flag', text:
+      `يحمل هذا البند حقلاً رقمياً: ${item.num.label} (${item.num.unit}). تعديله في مرحلة لاحقة.` }));
+  }
+
+  body.appendChild(el('div', { class: 'ed-sub', text: 'العبارات الجاهزة' }));
 
   (item.phrases || []).forEach((p, pi) => {
     const inp = el('input', { type: 'text', value: p });
@@ -103,36 +125,70 @@ function buildItem(sec, item, idx) {
   return el('div', { class: 'ed-item' }, [head, body]);
 }
 
-function render() {
-  const root = $('#edSection');
-  root.textContent = '';
+function buildSection(sec, idx) {
+  const isOpen = openSection === sec.id;
 
-  const sec = FORM.sections[0];
+  const caret = el('span', { class: 'caret', text: isOpen ? '▲' : '▼' });
+  const head = el('header', { class: 'ed-sechead' }, [
+    el('div', { class: 'num', text: String(sec._n) }),
+    el('h2', { text: sec.title || 'محور بلا عنوان' }),
+    el('span', { class: 'badge', text: `${sec.items.length} بنود` }),
+    caret
+  ]);
+  head.onclick = () => {
+    openSection = isOpen ? null : sec.id;
+    const y = window.scrollY;
+    render();
+    window.scrollTo(0, y);
+  };
+
+  const card = el('section', { class: 'card ed-sec' + (isOpen ? ' open' : '') }, [head]);
+  if (!isOpen) return card;
+
   const body = el('div', { class: 'body' });
 
-  body.appendChild(textField('عنوان المحور', sec.title, v => sec.title = v));
-  body.appendChild(el('div', { class: 'ed-sub', text: `البنود (${sec.items.length})` }));
+  body.appendChild(el('div', { class: 'ed-secrow' }, [
+    tools(FORM.sections, idx, structuralChange,
+      `حذف المحور «${sec.title}» بكلّ بنوده؟ الإجابات المسجّلة عليها في التقارير القديمة تبقى محفوظة ولا تظهر.`,
+      'wide')
+  ]));
 
+  body.appendChild(textField('عنوان المحور', sec.title, v => {
+    sec.title = v;
+    head.querySelector('h2').textContent = v || 'محور بلا عنوان';
+  }));
+
+  body.appendChild(el('div', { class: 'ed-sub', text: `البنود (${sec.items.length})` }));
   sec.items.forEach((it, i) => body.appendChild(buildItem(sec, it, i)));
 
   const add = el('button', { type: 'button', class: 'ed-add', text: '+ بند جديد' });
   add.onclick = () => {
     sec.items.push({ id: newFormId('i'), text: '', phrases: [] });
-    annotateForm(FORM); persist(true);
+    structuralChange();
   };
   body.appendChild(add);
 
-  root.appendChild(el('section', { class: 'card' }, [
-    el('header', {}, [
-      el('div', { class: 'num', text: String(sec._n) }),
-      el('h2', { text: sec.title || 'محور بلا عنوان' })
-    ]),
-    body
-  ]));
+  card.appendChild(body);
+  return card;
+}
+
+function render() {
+  const root = $('#edSections');
+  root.textContent = '';
+  FORM.sections.forEach((sec, i) => root.appendChild(buildSection(sec, i)));
+
+  const addSec = el('button', { type: 'button', class: 'ed-add', text: '+ محور جديد' });
+  addSec.onclick = () => {
+    const sec = { id: newFormId('s'), title: '', items: [] };
+    FORM.sections.push(sec);
+    openSection = sec.id;
+    structuralChange();
+  };
+  root.appendChild(addSec);
 }
 
 $('#edReset').onclick = () => {
-  if (!confirm('استعادة النموذج الأصلي؟ سيُلغى كلّ تعديل أجريتَه على البنود والعبارات. التقارير المحفوظة لا تتأثّر.')) return;
+  if (!confirm('استعادة النموذج الأصلي؟ سيُلغى كلّ تعديل أجريتَه على المحاور والبنود والعبارات. التقارير المحفوظة لا تتأثّر.')) return;
   resetForm();
   location.reload();
 };

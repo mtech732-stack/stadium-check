@@ -16,6 +16,23 @@
 .ed-note p { margin: 0 0 9px; font-size: 13.5px; line-height: 1.7; }
 .ed-note p:last-child { margin-bottom: 0; }
 
+/* المحاور القابلة للطيّ */
+.ed-sec > header.ed-sechead { cursor: pointer; user-select: none; }
+.ed-sec > header.ed-sechead h2 { flex: 1; }
+.ed-sec > header .badge { font-size: 11.5px; color: var(--muted); flex: none; }
+.ed-sec > header .caret { font-size: 10px; color: var(--muted); flex: none; }
+.ed-sec.open > header { background: var(--navy-soft); }
+.ed-sec.open > header h2 { color: var(--navy); }
+
+.ed-secrow { margin-bottom: 12px; }
+.ed-tools.wide { justify-content: flex-start; }
+.ed-tools.wide button { padding: 7px 14px; }
+
+.ed-flag {
+  font-size: 12px; color: var(--fix); background: var(--fix-bg);
+  border-radius: 8px; padding: 6px 10px; margin-bottom: 10px;
+}
+
 .ed-field { margin-bottom: 12px; }
 .ed-field > label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
 .ed-field input, .ed-field textarea {
