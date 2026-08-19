@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#123a63">
+<title>مراجعة النموذج — ملاحظات المراجع</title>
+<link rel="stylesheet" href="css/app.css">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<style>
+  .rv-intro p { margin: 0 0 10px; font-size: 14px; line-height: 1.7; color: var(--ink); }
+  .rv-note { margin-top: 8px; }
+  .rv-note textarea {
+    width: 100%; font: inherit; font-size: 14.5px; min-height: 54px;
+    padding: 9px 10px; border: 1px solid var(--line); border-radius: 9px; resize: vertical;
+  }
+  .rv-note textarea:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px var(--navy-soft); }
+  .rv-note textarea.filled { border-color: var(--ok); background: #f6fcf9; }
+  .rv-open {
+    display: inline-block; font: inherit; font-size: 13.5px; font-weight: 600;
+    padding: 10px 16px; border-radius: 9px; background: var(--navy); color: #fff;
+    text-decoration: none;
+  }
+  .rv-out { margin-top: 10px; }
+  .rv-out[hidden] { display: none; }
+  .rv-out textarea {
+    width: 100%; min-height: 220px; font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 12.5px; padding: 10px; border: 1px solid var(--line); border-radius: 9px;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="inner">
+    <div class="titlerow">
+      <h1>مراجعة النموذج — ملاحظاتك</h1>
+    </div>
+    <div class="sub" id="rvCount">لم تُكتب ملاحظات بعد</div>
+  </div>
+</div>
+
+<main>
+  <section class="card rv-intro">
+    <header><h2>كيف تراجع</h2></header>
+    <div class="body">
+      <p>جرّب التطبيق أولاً كأنّك تفحص ملعباً حقيقياً، ثمّ عُد إلى هذه الصفحة واكتب ملاحظتك <strong>تحت البند الذي تعنيه</strong>. اترك ما لا ملاحظة عليه فارغاً.</p>
+      <p>ملاحظاتك <strong>تُحفظ تلقائياً</strong> في جهازك، فلك أن تغلق الصفحة وتعود. وفي الأسفل زرّ ينسخها كلّها نصّاً واحداً ترسله عبر واتساب.</p>
+      <p><a class="rv-open" href="index.html" target="_blank" rel="noopener">افتح التطبيق للتجربة ↗</a></p>
+      <div class="field wide" style="margin-top:14px">
+        <label for="rvName">اسمك</label>
+        <input id="rvName" type="text" placeholder="ليظهر في أعلى الملاحظات">
+      </div>
+    </div>
+  </section>
+
+  <div id="rvSections"></div>
+
+  <section class="card">
+    <header><h2>جوانب عامّة</h2></header>
+    <div class="body" id="rvGeneral"></div>
+  </section>
+</main>
+
+<div class="actionbar">
+  <span class="saved" id="rvSaved">تُحفظ تلقائياً</span>
+  <button type="button" id="rvShow">إظهار النصّ</button>
+  <button type="button" id="rvCopy">نسخ الملاحظات</button>
+</div>
+
+<div class="rv-out" id="rvOut" hidden></div>
+
+<script src="js/data.js"></script>
+<script src="js/review.js"></script>
+</body>
+</html>
