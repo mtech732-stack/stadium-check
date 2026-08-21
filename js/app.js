@@ -652,7 +652,7 @@ save();
 
 /* بطاقة تشخيص: أيّ ملفّات يشغّلها الجهاز، ومن أين يقرأ النموذج.
    سطرٌ واحد يغني عن تخمين سبب اختلاف جهاز عن جهاز. */
-const BUILD = 17;
+const BUILD = 18;
 
 const buildInfo = $('#buildInfo');
 if (buildInfo) {
@@ -661,3 +661,34 @@ if (buildInfo) {
     `<b>${SECTIONS.reduce((a, s) => a + s.items.length, 0)}</b> بنداً`;
 }
 
+
+/* ــــ التحديث الذاتي ــــ
+   جهاز عالق على نسخة قديمة لا يعلم أنّه عالق. فيُسأل الخادم عن رقم النسخة
+   المنشورة، وإن كانت أحدث مُسح المخزون وأُعيد التحميل مرّة واحدة.
+   حارس في sessionStorage يمنع دورة إعادة تحميل لا تنتهي. */
+(function selfUpdate() {
+  if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
+  if (!navigator.onLine) return;
+
+  fetch('version.json?t=' + Date.now(), { cache: 'no-store' })
+    .then(r => r.ok ? r.json() : null)
+    .then(v => {
+      if (!v || typeof v.build !== 'number' || v.build <= BUILD) return;
+
+      let tried = 0;
+      try { tried = parseInt(sessionStorage.getItem('sc.updating') || '0', 10); } catch (e) {}
+      if (tried === v.build) return;   /* حاولنا لهذه النسخة ولم تنجح — لا نكرّر */
+      try { sessionStorage.setItem('sc.updating', String(v.build)); } catch (e) {}
+
+      const bar = el('div', { class: 'updating', text: 'يجري تحديث التطبيق إلى النسخة الأحدث…' });
+      document.body.appendChild(bar);
+
+      const clean = [];
+      if (window.caches) clean.push(caches.keys().then(ks => Promise.all(ks.map(k => caches.delete(k)))));
+      if (navigator.serviceWorker) {
+        clean.push(navigator.serviceWorker.getRegistrations().then(rs => Promise.all(rs.map(r => r.unregister()))));
+      }
+      Promise.all(clean).catch(() => {}).then(() => setTimeout(() => location.reload(), 400));
+    })
+    .catch(() => { /* بلا شبكة — يبقى على نسخته ويعمل */ });
+})();

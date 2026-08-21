@@ -420,3 +420,9 @@ button.link[hidden] { display: none; }
 
 /* ملاحظة متعدّدة الأسطر تكبر بمحتواها بدل شريط تمرير داخلها */
 .note textarea { line-height: 1.6; }
+
+.updating {
+  position: fixed; inset-inline: 0; top: 0; z-index: 90;
+  background: var(--navy); color: #fff; text-align: center;
+  font-size: 13px; padding: 10px 14px;
+}
