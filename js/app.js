@@ -252,20 +252,23 @@ function buildItem(sec, item) {
   /* العبارة تُدرَج نصّاً في الملاحظة عند النقر، فيعدّل عليها أو يضيف إليها مباشرةً */
   const chips = el('div', { class: 'phrases' });
 
-  /* العبارة موجودة في سطر مستقلّ؟ منه يُعرف حال الزرّ، ومنه يُمنع التكرار */
-  const hasPhrase = p => ta.value.split('\n').some(line => line.trim() === p);
+  /* كلّ عبارة سطرٌ مُنقَّط. والمقارنة تتجاهل النقطة، فتصحّ مع ملاحظات
+     سُجّلت قبل التنقيط ولا تُكرَّر العبارة بسببها. */
+  const BULLET = '• ';
+  const bare = line => line.replace(/^\s*[•\-–]\s*/, '').trim();
+  const hasPhrase = p => ta.value.split('\n').some(line => bare(line) === p);
 
   /* كلّ عبارة في سطر مستقلّ — أوضح للقراءة في الشاشة وفي المطبوعة */
   function addPhrase(p) {
     if (hasPhrase(p)) return;
     let cur = ta.value.replace(/\s+$/, '');
     if (rec.s === 'ok' && !cur.trim()) cur = 'مطابق:';
-    ta.value = cur ? cur + '\n' + p : p;
+    ta.value = cur ? cur + '\n' + BULLET + p : BULLET + p;
     ta.rows = Math.max(2, ta.value.split('\n').length);
   }
 
   function removePhrase(p) {
-    const kept = ta.value.split('\n').filter(line => line.trim() !== p);
+    const kept = ta.value.split('\n').filter(line => bare(line) !== p);
     let t = kept.join('\n').replace(/\n{2,}/g, '\n').trim();
     if (t === 'مطابق:') t = '';
     ta.value = t;
@@ -638,7 +641,7 @@ save();
 
 /* بطاقة تشخيص: أيّ ملفّات يشغّلها الجهاز، ومن أين يقرأ النموذج.
    سطرٌ واحد يغني عن تخمين سبب اختلاف جهاز عن جهاز. */
-const BUILD = 15;
+const BUILD = 16;
 
 const buildInfo = $('#buildInfo');
 if (buildInfo) {
