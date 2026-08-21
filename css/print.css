@@ -43,7 +43,13 @@ body.preview #printView {
 }
 
 .p-head { text-align: center; padding-bottom: 0; margin-bottom: 10px; }
-.p-head .crest { display: block; width: 17mm; height: auto; margin: 0 auto 3px; }
+/* أبعاد صريحة لا `auto` — Safari يحسب ارتفاع الصور بالمليمتر حساباً مختلفاً */
+.p-head .crest {
+  display: block;
+  width: 17mm; height: 17mm;
+  object-fit: contain;
+  margin: 0 auto 3px;
+}
 .p-head .org { font-size: 10pt; letter-spacing: .3px; font-weight: 600; }
 .p-head h1 { font-size: 13pt; font-weight: 600; margin: 3px 0 5px; }
 

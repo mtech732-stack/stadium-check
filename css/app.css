@@ -48,11 +48,17 @@ body { min-height: 100dvh; padding-bottom: 88px; }
 .topbar > div.inner { max-width: 640px; margin: 0 auto; }
 .titlerow { display: flex; align-items: center; gap: 10px; }
 .titlerow h1 { flex: 1; }
-/* أرضية بيضاء تحت الشعار — حوافّه سوداء فتذوب في أزرق الشريط بدونها */
+/* أرضية بيضاء تحت الشعار — حوافّه سوداء فتذوب في أزرق الشريط بدونها.
+   الأبعاد مثبّتة بأربعة قيود لأنّ Safari على الأيفون يمطّ الصور داخل flex. */
 .titlerow .crest {
-  width: 38px; height: 38px; flex: none;
-  object-fit: contain; background: #fff;
-  border-radius: 9px; padding: 3px;
+  flex: 0 0 auto;
+  width: 38px;  min-width: 38px;  max-width: 38px;
+  height: 38px; min-height: 38px; max-height: 38px;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 9px;
+  padding: 3px;
+  box-sizing: border-box;
 }
 #btnArchive {
   font: inherit; font-size: 12.5px; padding: 5px 11px; flex: none;
