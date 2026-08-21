@@ -251,17 +251,42 @@ function buildItem(sec, item) {
   /* العبارة تُدرَج نصّاً في الملاحظة عند النقر، فيعدّل عليها أو يضيف إليها مباشرةً */
   const chips = el('div', { class: 'phrases' });
 
-  function insertPhrase(p) {
+  /* العبارة موجودة في الملاحظة؟ منه يُعرف حال الزرّ، ومنه يُمنع التكرار */
+  const hasPhrase = p => ta.value.indexOf(p) > -1;
+
+  function addPhrase(p) {
+    if (hasPhrase(p)) return;
     let cur = ta.value.trim();
     if (rec.s === 'ok' && !cur) cur = 'مطابق:';
     /* فاصل بين العبارات المتتابعة، ومسافة فقط بعد النقطتين */
     const sep = cur.endsWith(':') ? ' ' : ' · ';
     ta.value = cur ? cur + sep + p : p;
+  }
+
+  function removePhrase(p) {
+    let t = ta.value;
+    t = t.split(' · ' + p).join('');   /* عبارة تالية */
+    t = t.split(p + ' · ').join('');   /* عبارة سابقة لغيرها */
+    t = t.split(p).join('');           /* عبارة وحيدة */
+    t = t.replace(/\s*·\s*·\s*/g, ' · ').replace(/^\s*·\s*/, '').replace(/\s*·\s*$/, '');
+    t = t.replace(/^مطابق:\s*$/, '').replace(/\s{2,}/g, ' ').trim();
+    ta.value = t;
+  }
+
+  function togglePhrase(p, btn) {
+    if (hasPhrase(p)) removePhrase(p); else addPhrase(p);
     rec.note = ta.value;
-    ta.focus();
-    ta.setSelectionRange(ta.value.length, ta.value.length);
+    btn.setAttribute('aria-pressed', hasPhrase(p) ? 'true' : 'false');
+    syncChips();
     syncNote();
     save();
+  }
+
+  /* بعد أيّ تغيير في النصّ تُعاد مطابقة أزرار العبارات لما فيه فعلاً */
+  function syncChips() {
+    chips.querySelectorAll('button[data-p]').forEach(b => {
+      b.setAttribute('aria-pressed', hasPhrase(b.dataset.p) ? 'true' : 'false');
+    });
   }
 
   function renderChips() {
@@ -269,10 +294,13 @@ function buildItem(sec, item) {
     const list = phrasesFor(item, rec.s);
     if (!list.length) return;
     chips.appendChild(el('div', { class: 'lbl',
-      text: 'انقر العبارة لإدراجها في الملاحظة، ثمّ عدّل عليها أو أضِف إليها' }));
+      text: 'انقر العبارة لإضافتها، وانقرها ثانيةً لإزالتها — والنصّ قابل للتعديل' }));
     list.forEach(p => {
-      const b = el('button', { type: 'button', text: p });
-      b.onclick = () => insertPhrase(p);
+      const b = el('button', {
+        type: 'button', text: p, 'data-p': p,
+        'aria-pressed': hasPhrase(p) ? 'true' : 'false'
+      });
+      b.onclick = () => togglePhrase(p, b);
       chips.appendChild(b);
     });
   }
@@ -322,7 +350,7 @@ function buildItem(sec, item) {
   };
   seg.appendChild(noteBtn);
 
-  ta.oninput = () => { rec.note = ta.value; syncNote(); save(); };
+  ta.oninput = () => { rec.note = ta.value; syncChips(); syncNote(); save(); };
   syncNote();
 
   const kids = [
@@ -611,7 +639,7 @@ save();
 
 /* بطاقة تشخيص: أيّ ملفّات يشغّلها الجهاز، ومن أين يقرأ النموذج.
    سطرٌ واحد يغني عن تخمين سبب اختلاف جهاز عن جهاز. */
-const BUILD = 13;
+const BUILD = 14;
 
 const buildInfo = $('#buildInfo');
 if (buildInfo) {

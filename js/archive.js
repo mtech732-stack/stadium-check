@@ -90,8 +90,9 @@
         `${fmtDate(r.meta.date)} · ${r.meta.stadium || '—'} · ${p.done} من ${p.total} بنداً` });
 
       const tags = el('div', { class: 'arow-tags' }, [
-        d ? el('span', { class: 'tag t-' + d.cls, text: d.label }) : el('span', { class: 'tag', text: 'قيد التعبئة' })
-      ]);
+        d ? el('span', { class: 'tag t-' + d.cls, text: d.label }) : el('span', { class: 'tag', text: 'قيد التعبئة' }),
+        r.done ? el('span', { class: 'tag t-done', text: 'محفوظ' }) : null
+      ].filter(Boolean));
 
       const btnOpen = el('button', { type: 'button', class: 'small', text: id === currentId ? 'إغلاق الأرشيف' : 'افتح' });
       btnOpen.onclick = () => open(id);
@@ -154,6 +155,17 @@
   document.getElementById('btnArchive').onclick = show;
   document.getElementById('archClose').onclick = close;
   document.getElementById('archNew').onclick = createNew;
+  document.getElementById('btnNew').onclick = createNew;
+
+  /* الحفظ التلقائي يعمل دائماً؛ وهذا الزرّ يثبّت التقرير منتهياً وينقل إلى الأرشيف */
+  document.getElementById('btnSaveArchive').onclick = () => {
+    state.done = true;
+    state.savedAt = Date.now();
+    reports[currentId] = state;
+    store.write(KEY_REPORTS, reports);
+    store.write(KEY_CURRENT, currentId);
+    show();
+  };
   document.getElementById('archExport').onclick = exportAll;
 
   const fileInput = document.getElementById('archFile');

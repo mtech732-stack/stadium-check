@@ -1,20 +1,20 @@
 /* عامل الخدمة: يخزّن ملفّات التطبيق ليعمل دون إنترنت.
    عند تعديل أيّ ملفّ ارفع رقم CACHE ليأخذ الجوّال النسخة الجديدة. */
 
-const CACHE = 'stadium-check-v14';
+const CACHE = 'stadium-check-v15';
 
 const SHELL = [
   './',
   './index.html',
-  './css/app.css?v=13',
-  './css/print.css?v=13',
-  './js/data.js?v=13',
-  './js/form-store.js?v=13',
-  './js/app.js?v=13',
-  './js/print.js?v=13',
-  './js/archive.js?v=13',
+  './css/app.css?v=14',
+  './css/print.css?v=14',
+  './js/data.js?v=14',
+  './js/form-store.js?v=14',
+  './js/app.js?v=14',
+  './js/print.js?v=14',
+  './js/archive.js?v=14',
   './review.html',
-  './js/review.js?v=13',
+  './js/review.js?v=14',
   './manifest.webmanifest',
   './assets/kfa-logo.png',
   './icons/icon-180.png',
