@@ -57,7 +57,14 @@ function normalize(r, id) {
   });
   Object.values(r.items).forEach(x => {
     if (x.s === 'na') x.s = '';
-    if (!Array.isArray(x.sel)) x.sel = [];
+    /* تقارير سُجّلت حين كانت العبارات تُختار لا تُدرَج: تُدمج في نصّ الملاحظة */
+    if (Array.isArray(x.sel)) {
+      if (x.sel.length) {
+        const head = (x.s === 'ok' ? 'مطابق: ' : '') + x.sel.join(' · ');
+        x.note = x.note ? head + ' — ' + x.note : head;
+      }
+      delete x.sel;
+    }
   });
   return r;
 }
@@ -110,15 +117,9 @@ function bandCount(n) {
 /* مطابقة الفعل/الوصف للعدد: مفرد · مثنّى · جمع */
 function agree(n, one, two, many) { return n === 1 ? one : n === 2 ? two : many; }
 
-/* نصّ الملاحظة كما يُعرض ويُطبع: العبارات المختارة ثمّ ما كُتب حرّاً */
+/* نصّ الملاحظة — صار حقلاً نصّياً واحداً تُدرَج فيه العبارات ويُعدَّل عليها */
 function noteText(rec) {
-  if (!rec) return '';
-  const parts = [];
-  if (rec.sel && rec.sel.length) {
-    parts.push((rec.s === 'ok' ? 'مطابق: ' : '') + rec.sel.join(' · '));
-  }
-  if (rec.note && rec.note.trim()) parts.push(rec.note.trim());
-  return parts.join(' — ');
+  return rec && rec.note ? rec.note.trim() : '';
 }
 
 function seasonOf(dateStr) {
@@ -237,36 +238,41 @@ function phrasesFor(item, s) {
 
 function buildItem(sec, item) {
   const key = item.id;
-  const rec = state.items[key] || (state.items[key] = { s: '', sel: [], note: '' });
-  if (!Array.isArray(rec.sel)) rec.sel = [];
+  const rec = state.items[key] || (state.items[key] = { s: '', note: '' });
 
   const autoOpen = () =>
-    rec.s === 'fix' || rec.s === 'no' || !!rec.note || rec.sel.length > 0 ||
+    rec.s === 'fix' || rec.s === 'no' || !!rec.note ||
     (rec.s === 'ok' && phrasesFor(item, 'ok').length > 0);
 
   const note = el('div', { class: 'note', hidden: autoOpen() ? null : 'hidden' });
   const ta = el('textarea', { placeholder: 'الملاحظة / الإجراء المطلوب', rows: '2' });
   ta.value = rec.note;
 
-  /* العبارات تُختار وتُلغى بالنقر، ويُختار منها أكثر من واحدة */
+  /* العبارة تُدرَج نصّاً في الملاحظة عند النقر، فيعدّل عليها أو يضيف إليها مباشرةً */
   const chips = el('div', { class: 'phrases' });
+
+  function insertPhrase(p) {
+    let cur = ta.value.trim();
+    if (rec.s === 'ok' && !cur) cur = 'مطابق:';
+    /* فاصل بين العبارات المتتابعة، ومسافة فقط بعد النقطتين */
+    const sep = cur.endsWith(':') ? ' ' : ' · ';
+    ta.value = cur ? cur + sep + p : p;
+    rec.note = ta.value;
+    ta.focus();
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+    syncNote();
+    save();
+  }
 
   function renderChips() {
     chips.textContent = '';
     const list = phrasesFor(item, rec.s);
     if (!list.length) return;
-    chips.appendChild(el('div', { class: 'lbl', text:
-      rec.s === 'ok' ? 'اختر ما ينطبق — يُسجَّل مسبوقاً بكلمة «مطابق»' : 'اختر ما ينطبق — ولك أكثر من عبارة' }));
+    chips.appendChild(el('div', { class: 'lbl',
+      text: 'انقر العبارة لإدراجها في الملاحظة، ثمّ عدّل عليها أو أضِف إليها' }));
     list.forEach(p => {
-      const on = rec.sel.indexOf(p) > -1;
-      const b = el('button', { type: 'button', text: p, 'aria-pressed': on ? 'true' : 'false' });
-      b.onclick = () => {
-        const i = rec.sel.indexOf(p);
-        if (i > -1) rec.sel.splice(i, 1); else rec.sel.push(p);
-        b.setAttribute('aria-pressed', rec.sel.indexOf(p) > -1 ? 'true' : 'false');
-        syncNote();
-        save();
-      };
+      const b = el('button', { type: 'button', text: p });
+      b.onclick = () => insertPhrase(p);
       chips.appendChild(b);
     });
   }
@@ -286,11 +292,8 @@ function buildItem(sec, item) {
   const syncNote = () => {
     const open = !note.hasAttribute('hidden');
     noteBtn.setAttribute('aria-pressed', open ? 'true' : 'false');
-    noteBtn.textContent = (rec.note || rec.sel.length) ? 'ملاحظة ✓' : 'ملاحظة';
+    noteBtn.textContent = rec.note ? 'ملاحظة ✓' : 'ملاحظة';
   };
-
-  /* فئة العبارات: «مطابق» فئة، و«يحتاج معالجة/غير مطابق» فئة أخرى */
-  const groupOf = s => s === 'ok' ? 'ok' : (s ? 'issue' : '');
 
   STATUSES.forEach(st => {
     const b = el('button', {
@@ -299,10 +302,7 @@ function buildItem(sec, item) {
       'aria-label': st.label
     });
     b.onclick = () => {
-      const before = groupOf(rec.s);
       rec.s = rec.s === st.id ? '' : st.id;
-      /* تغيّرت فئة العبارات ⟵ تُلغى الاختيارات السابقة لأنّها من قائمة أخرى */
-      if (groupOf(rec.s) !== before) rec.sel = [];
       seg.querySelectorAll('button[data-s]:not([data-s="note"])').forEach(x =>
         x.setAttribute('aria-pressed', x.dataset.s === rec.s ? 'true' : 'false'));
       renderChips();
@@ -317,7 +317,7 @@ function buildItem(sec, item) {
 
   noteBtn.onclick = () => {
     if (note.hasAttribute('hidden')) { note.removeAttribute('hidden'); ta.focus(); }
-    else if (!rec.note && !rec.sel.length) { note.setAttribute('hidden', 'hidden'); }
+    else if (!rec.note) { note.setAttribute('hidden', 'hidden'); }
     syncNote();
   };
   seg.appendChild(noteBtn);
@@ -611,35 +611,12 @@ save();
 
 /* بطاقة تشخيص: أيّ ملفّات يشغّلها الجهاز، ومن أين يقرأ النموذج.
    سطرٌ واحد يغني عن تخمين سبب اختلاف جهاز عن جهاز. */
-const BUILD = 12;
+const BUILD = 13;
 
 const buildInfo = $('#buildInfo');
 if (buildInfo) {
-  const src = isFormCustomized()
-    ? (FORM_OUTDATED ? 'نسخة محفوظة قديمة' : 'نسخة محفوظة')
-    : 'النموذج الرسمي';
   buildInfo.innerHTML =
-    `نسخة التطبيق: <b>${BUILD}</b> · النموذج: <b>${src}</b> ` +
-    `(إصدار ${FORM.v || '؟'} / الرسمي ${FORM_VERSION}) · ` +
+    `نسخة التطبيق: <b>${BUILD}</b> · النموذج: <b>الرسمي ${FORM_VERSION}</b> · ` +
     `<b>${SECTIONS.reduce((a, s) => a + s.items.length, 0)}</b> بنداً`;
-}
-
-/* إشعار: النموذج الرسمي تغيّر والجهاز عالق على نسخة محفوظة أقدم */
-const notice = $('#formNotice');
-if (notice && FORM_OUTDATED) {
-  const btnUpdate = el('button', { type: 'button', class: 'primary', text: 'حدِّث إلى الرسمي' });
-  btnUpdate.onclick = () => {
-    if (!confirm('استبدال نسختك المحفوظة بالنموذج الرسمي المحدَّث؟ تقاريرك المحفوظة لا تتأثّر.')) return;
-    resetForm();
-    location.reload();
-  };
-  const btnKeep = el('button', { type: 'button', text: 'أبقِ نسختي' });
-  btnKeep.onclick = () => notice.textContent = '';
-
-  notice.appendChild(el('div', { class: 'notice' }, [
-    el('div', { class: 'txt', text:
-      'النموذج الرسمي حُدِّث، وجهازك يعرض نسخة محفوظة أقدم — فبعض التعديلات لا تظهر عندك.' }),
-    el('div', { class: 'acts' }, [btnUpdate, btnKeep])
-  ]));
 }
 

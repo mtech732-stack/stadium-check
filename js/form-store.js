@@ -59,7 +59,17 @@ function validForm(f) {
     Array.isArray(f.measurements) && Array.isArray(f.clubs));
 }
 
+/* بعد إخراج صفحة «تعديل النموذج»، صار النموذج الرسمي هو المرجع الوحيد.
+   وأيّ نسخة محفوظة قديمة تُمحى من الجهاز، وإلّا بقيت تحجب التحديثات عنه. */
 function loadForm() {
+  try {
+    if (localStorage.getItem(KEY_FORM)) localStorage.removeItem(KEY_FORM);
+  } catch (e) { /* لا يضرّ */ }
+  return annotateForm(defaultForm());
+}
+
+/* محفوظة للرجوع إليها إن أُعيدت صفحة التعديل يوماً */
+function loadSavedForm() {
   let saved = null;
   try { saved = JSON.parse(localStorage.getItem(KEY_FORM)); } catch (e) { saved = null; }
   if (!validForm(saved)) return annotateForm(defaultForm());

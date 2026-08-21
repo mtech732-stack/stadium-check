@@ -157,9 +157,9 @@
       P('div', { class: 'line' }),
       P('div', { class: 'cap', text: 'التوقيع' })
     ]);
-    return P('section', { class: 'p-sign' }, [
-      cell('الفاحص / مراقب المباريات', m.inspector),
-      cell('ممثل النادي', '')
+    /* توقيع الفاحص وحده — أُلغي توقيع ممثّل النادي بقرار المراجعة */
+    return P('section', { class: 'p-sign one' }, [
+      cell('الفاحص / مراقب المباريات', m.inspector)
     ]);
   }
 

@@ -98,3 +98,6 @@ body.preview #printView {
 .p-sign .name { font-size: 9.5pt; min-height: 16px; padding-top: 3px; }
 .p-sign .line { border-bottom: 0.8pt solid #000; margin: 16px 0 3px; }
 .p-sign .cap { font-size: 8.5pt; text-align: center; }
+
+/* توقيع واحد — يُحصر في نصف العرض فلا يمتدّ سطره عبر الورقة */
+.p-sign.one .sig { flex: 0 0 55%; }
