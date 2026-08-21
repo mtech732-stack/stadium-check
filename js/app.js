@@ -608,3 +608,8 @@ buildMeasurements();
 buildSummary();
 refreshTally();
 save();
+
+/* رقم النسخة — يُظهر أيّ ملفّات يشغّلها الجهاز فعلاً عند تشخيص عطل بعيد */
+const BUILD = 11;
+const buildEl = $('#buildNo');
+if (buildEl) buildEl.textContent = String(BUILD);

@@ -381,3 +381,6 @@ button.link[hidden] { display: none; }
 @media (min-width: 560px) {
   .fields { grid-template-columns: repeat(3, 1fr); }
 }
+
+.build { font-size: 11.5px; color: var(--muted); text-align: center; padding: 4px 12px 0; }
+.build b { color: var(--ink); font-weight: 600; }
