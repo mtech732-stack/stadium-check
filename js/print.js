@@ -167,9 +167,12 @@
     const root = document.getElementById('printView');
     root.textContent = '';
 
+    const crest = P('img', { class: 'crest', src: 'assets/kfa-logo.png', alt: FORM_META.org });
     root.appendChild(P('header', { class: 'p-head' }, [
+      crest,
       P('div', { class: 'org', text: FORM_META.org }),
-      P('h1', { text: FORM_META.title })
+      P('h1', { text: FORM_META.title }),
+      P('div', { class: 'rule' })
     ]));
 
     root.appendChild(metaTable());

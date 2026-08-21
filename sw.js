@@ -1,7 +1,7 @@
 /* عامل الخدمة: يخزّن ملفّات التطبيق ليعمل دون إنترنت.
    عند تعديل أيّ ملفّ ارفع رقم CACHE ليأخذ الجوّال النسخة الجديدة. */
 
-const CACHE = 'stadium-check-v7';
+const CACHE = 'stadium-check-v8';
 
 const SHELL = [
   './',
@@ -19,6 +19,7 @@ const SHELL = [
   './review.html',
   './js/review.js',
   './manifest.webmanifest',
+  './assets/kfa-logo.png',
   './icons/icon-180.png',
   './icons/icon-192.png',
   './icons/icon-512.png'

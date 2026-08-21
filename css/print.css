@@ -22,6 +22,8 @@ body.preview #printView {
 
 @media print {
   .topbar, main, .actionbar { display: none !important; }
+  /* ألوان الترويسة والجداول تُطبع كما هي لا بيضاء */
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   html, body { background: #fff; padding: 0; margin: 0; }
   #printView { display: block; }
   a[href]:after { content: none !important; }
@@ -30,24 +32,41 @@ body.preview #printView {
 /* ــــ تنسيق المطبوعة ــــ */
 #printView { font-size: 9.5pt; line-height: 1.45; color: #000; }
 
-.p-head { text-align: center; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 10px; }
-.p-head .org { font-size: 10pt; letter-spacing: .3px; }
-.p-head h1 { font-size: 13pt; font-weight: 600; margin: 3px 0 0; }
+/* ألوان مستمدّة من شعار الاتحاد: أحمر الكويت وأخضره والأسود.
+   النصّ والإطارات سوداء ليبقى النموذج مقروءاً إن طُبع بالأبيض والأسود. */
+:root {
+  --kfa-red: #c8102e;
+  --kfa-green: #00843d;
+  --kfa-tint: #eef5f0;
+  --kfa-tint-2: #f6faf7;
+}
+
+.p-head { text-align: center; padding-bottom: 0; margin-bottom: 10px; }
+.p-head .crest { display: block; width: 17mm; height: auto; margin: 0 auto 3px; }
+.p-head .org { font-size: 10pt; letter-spacing: .3px; font-weight: 600; }
+.p-head h1 { font-size: 13pt; font-weight: 600; margin: 3px 0 5px; }
+
+/* شريط الترويسة بلونَي الشعار */
+.p-head .rule { height: 2.2mm; display: flex; }
+.p-head .rule::before,
+.p-head .rule::after { content: ''; display: block; height: 100%; }
+.p-head .rule::before { width: 62%; background: var(--kfa-green); }
+.p-head .rule::after  { width: 38%; background: var(--kfa-red); }
 
 #printView table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
 #printView th, #printView td { border: 0.6pt solid #000; padding: 3.5px 5px; vertical-align: middle; }
 
-.p-meta th.k { background: #eceff3; font-weight: 600; width: 15%; font-size: 9pt; text-align: right; }
+.p-meta th.k { background: var(--kfa-tint); font-weight: 600; width: 15%; font-size: 9pt; text-align: right; }
 .p-meta td { width: 18.3%; }
 .p-meta td.strong { font-weight: 600; }
 
 .p-block { break-inside: auto; page-break-inside: auto; }
 .p-block h3 {
   font-size: 10pt; font-weight: 600; margin: 8px 0 5px;
-  background: #eceff3; border: 0.6pt solid #000; padding: 3.5px 6px;
+  background: var(--kfa-tint); border: 0.6pt solid #000; border-inline-start: 1.6mm solid var(--kfa-green); padding: 3.5px 6px;
 }
 
-.p-items thead th { background: #f4f6f8; font-weight: 600; font-size: 8.5pt; text-align: center; }
+.p-items thead th { background: var(--kfa-tint-2); font-weight: 600; font-size: 8.5pt; text-align: center; }
 .p-items tr { break-inside: avoid; page-break-inside: avoid; }
 
 .p-items .c-n    { width: 4%;  text-align: center; }
