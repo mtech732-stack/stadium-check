@@ -417,3 +417,6 @@ button.link[hidden] { display: none; }
 .savebar .hint { font-size: 12px; color: var(--muted); text-align: center; margin: 8px 0 0; line-height: 1.6; }
 
 .tag.t-done { background: var(--navy-soft); color: var(--navy); }
+
+/* ملاحظة متعدّدة الأسطر تكبر بمحتواها بدل شريط تمرير داخلها */
+.note textarea { line-height: 1.6; }

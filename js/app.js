@@ -247,30 +247,29 @@ function buildItem(sec, item) {
   const note = el('div', { class: 'note', hidden: autoOpen() ? null : 'hidden' });
   const ta = el('textarea', { placeholder: 'الملاحظة / الإجراء المطلوب', rows: '2' });
   ta.value = rec.note;
+  ta.rows = Math.max(2, String(rec.note || '').split('\n').length);
 
   /* العبارة تُدرَج نصّاً في الملاحظة عند النقر، فيعدّل عليها أو يضيف إليها مباشرةً */
   const chips = el('div', { class: 'phrases' });
 
-  /* العبارة موجودة في الملاحظة؟ منه يُعرف حال الزرّ، ومنه يُمنع التكرار */
-  const hasPhrase = p => ta.value.indexOf(p) > -1;
+  /* العبارة موجودة في سطر مستقلّ؟ منه يُعرف حال الزرّ، ومنه يُمنع التكرار */
+  const hasPhrase = p => ta.value.split('\n').some(line => line.trim() === p);
 
+  /* كلّ عبارة في سطر مستقلّ — أوضح للقراءة في الشاشة وفي المطبوعة */
   function addPhrase(p) {
     if (hasPhrase(p)) return;
-    let cur = ta.value.trim();
-    if (rec.s === 'ok' && !cur) cur = 'مطابق:';
-    /* فاصل بين العبارات المتتابعة، ومسافة فقط بعد النقطتين */
-    const sep = cur.endsWith(':') ? ' ' : ' · ';
-    ta.value = cur ? cur + sep + p : p;
+    let cur = ta.value.replace(/\s+$/, '');
+    if (rec.s === 'ok' && !cur.trim()) cur = 'مطابق:';
+    ta.value = cur ? cur + '\n' + p : p;
+    ta.rows = Math.max(2, ta.value.split('\n').length);
   }
 
   function removePhrase(p) {
-    let t = ta.value;
-    t = t.split(' · ' + p).join('');   /* عبارة تالية */
-    t = t.split(p + ' · ').join('');   /* عبارة سابقة لغيرها */
-    t = t.split(p).join('');           /* عبارة وحيدة */
-    t = t.replace(/\s*·\s*·\s*/g, ' · ').replace(/^\s*·\s*/, '').replace(/\s*·\s*$/, '');
-    t = t.replace(/^مطابق:\s*$/, '').replace(/\s{2,}/g, ' ').trim();
+    const kept = ta.value.split('\n').filter(line => line.trim() !== p);
+    let t = kept.join('\n').replace(/\n{2,}/g, '\n').trim();
+    if (t === 'مطابق:') t = '';
     ta.value = t;
+    ta.rows = Math.max(2, ta.value.split('\n').length);
   }
 
   function togglePhrase(p, btn) {
@@ -639,7 +638,7 @@ save();
 
 /* بطاقة تشخيص: أيّ ملفّات يشغّلها الجهاز، ومن أين يقرأ النموذج.
    سطرٌ واحد يغني عن تخمين سبب اختلاف جهاز عن جهاز. */
-const BUILD = 14;
+const BUILD = 15;
 
 const buildInfo = $('#buildInfo');
 if (buildInfo) {
