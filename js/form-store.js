@@ -11,7 +11,7 @@ function newFormId(prefix) {
 
 function defaultForm() {
   return {
-    v: 1,
+    v: FORM_VERSION,
     meta: JSON.parse(JSON.stringify(DEFAULT_META)),
     fields: JSON.parse(JSON.stringify(DEFAULT_FIELDS)),
     sections: DEFAULT_SECTIONS.map((sec, si) => ({
@@ -92,6 +92,11 @@ function loadForm() {
     if (!Array.isArray(it.phrases))   it.phrases   = orig ? orig.phrases.slice()   : [];
     if (!Array.isArray(it.phrasesOk)) it.phrasesOk = orig ? orig.phrasesOk.slice() : [];
   }));
+
+  /* النسخة المحفوظة تُجمّد النموذج على لحظة حفظها؛ فإن تغيّر الرسمي بعدها
+     لا يصل التعديل إلى الجهاز. هنا نرفع العلم ليُعرض على المستخدم. */
+  if (saved.v !== FORM_VERSION) FORM_OUTDATED = true;
+
   return annotateForm(saved);
 }
 
@@ -109,6 +114,9 @@ function resetForm() {
 function isFormCustomized() {
   try { return !!localStorage.getItem(KEY_FORM); } catch (e) { return false; }
 }
+
+/* هل النسخة المحفوظة أقدم من الرسمية؟ يُقرأ في الواجهة لعرض إشعار التحديث. */
+var FORM_OUTDATED = false;
 
 /* النموذج الفعّال + الأسماء التي يستعملها بقيّة التطبيق */
 var FORM = loadForm();

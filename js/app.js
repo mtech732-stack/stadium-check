@@ -609,7 +609,37 @@ buildSummary();
 refreshTally();
 save();
 
-/* رقم النسخة — يُظهر أيّ ملفّات يشغّلها الجهاز فعلاً عند تشخيص عطل بعيد */
-const BUILD = 11;
-const buildEl = $('#buildNo');
-if (buildEl) buildEl.textContent = String(BUILD);
+/* بطاقة تشخيص: أيّ ملفّات يشغّلها الجهاز، ومن أين يقرأ النموذج.
+   سطرٌ واحد يغني عن تخمين سبب اختلاف جهاز عن جهاز. */
+const BUILD = 12;
+
+const buildInfo = $('#buildInfo');
+if (buildInfo) {
+  const src = isFormCustomized()
+    ? (FORM_OUTDATED ? 'نسخة محفوظة قديمة' : 'نسخة محفوظة')
+    : 'النموذج الرسمي';
+  buildInfo.innerHTML =
+    `نسخة التطبيق: <b>${BUILD}</b> · النموذج: <b>${src}</b> ` +
+    `(إصدار ${FORM.v || '؟'} / الرسمي ${FORM_VERSION}) · ` +
+    `<b>${SECTIONS.reduce((a, s) => a + s.items.length, 0)}</b> بنداً`;
+}
+
+/* إشعار: النموذج الرسمي تغيّر والجهاز عالق على نسخة محفوظة أقدم */
+const notice = $('#formNotice');
+if (notice && FORM_OUTDATED) {
+  const btnUpdate = el('button', { type: 'button', class: 'primary', text: 'حدِّث إلى الرسمي' });
+  btnUpdate.onclick = () => {
+    if (!confirm('استبدال نسختك المحفوظة بالنموذج الرسمي المحدَّث؟ تقاريرك المحفوظة لا تتأثّر.')) return;
+    resetForm();
+    location.reload();
+  };
+  const btnKeep = el('button', { type: 'button', text: 'أبقِ نسختي' });
+  btnKeep.onclick = () => notice.textContent = '';
+
+  notice.appendChild(el('div', { class: 'notice' }, [
+    el('div', { class: 'txt', text:
+      'النموذج الرسمي حُدِّث، وجهازك يعرض نسخة محفوظة أقدم — فبعض التعديلات لا تظهر عندك.' }),
+    el('div', { class: 'acts' }, [btnUpdate, btnKeep])
+  ]));
+}
+
