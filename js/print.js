@@ -172,7 +172,9 @@
       crest,
       P('div', { class: 'org', text: FORM_META.org }),
       P('h1', { text: FORM_META.title }),
-      P('div', { class: 'rule' })
+      P('div', { class: 'rule' }, [
+        P('span', { class: 'b' }), P('span', { class: 'g' }), P('span', { class: 'r' })
+      ])
     ]));
 
     root.appendChild(metaTable());
