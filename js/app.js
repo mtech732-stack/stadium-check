@@ -246,6 +246,17 @@ function buildItem(sec, item) {
 
   const note = el('div', { class: 'note', hidden: autoOpen() ? null : 'hidden' });
   const ta = el('textarea', { placeholder: 'الملاحظة / الإجراء المطلوب', rows: '2' });
+  /* ملاحظات أُدرجت قبل التنقيط: كلّ سطر يطابق عبارةً معروفة يُنقَّط الآن،
+     فتستوي القديمة والجديدة ولا يظنّ المستخدم أنّ التنقيط لا يعمل. */
+  const known = (item.phrases || []).concat(item.phrasesOk || []);
+  if (rec.note && known.length) {
+    const fixed = rec.note.split('\n').map(line => {
+      const t = line.trim();
+      return (t && known.indexOf(t) > -1) ? '• ' + t : line;
+    }).join('\n');
+    if (fixed !== rec.note) { rec.note = fixed; save(); }
+  }
+
   ta.value = rec.note;
   ta.rows = Math.max(2, String(rec.note || '').split('\n').length);
 
@@ -641,7 +652,7 @@ save();
 
 /* بطاقة تشخيص: أيّ ملفّات يشغّلها الجهاز، ومن أين يقرأ النموذج.
    سطرٌ واحد يغني عن تخمين سبب اختلاف جهاز عن جهاز. */
-const BUILD = 16;
+const BUILD = 17;
 
 const buildInfo = $('#buildInfo');
 if (buildInfo) {
