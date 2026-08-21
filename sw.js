@@ -1,7 +1,7 @@
 /* عامل الخدمة: يخزّن ملفّات التطبيق ليعمل دون إنترنت.
    عند تعديل أيّ ملفّ ارفع رقم CACHE ليأخذ الجوّال النسخة الجديدة. */
 
-const CACHE = 'stadium-check-v6';
+const CACHE = 'stadium-check-v7';
 
 const SHELL = [
   './',
@@ -36,19 +36,23 @@ self.addEventListener('activate', ev => {
   );
 });
 
-/* الكاش أولاً: التطبيق يعمل كاملاً دون شبكة، ويحدّث نسخته في الخلفية عند توفّرها. */
+/* الشبكة أولاً: المتّصل يأخذ الأحدث دائماً، والمنقطع يرجع إلى النسخة المخزّنة.
+   الكاش أولاً كان يعرض نسخة قديمة عند كلّ تحديث حتى الفتحة التالية. */
 self.addEventListener('fetch', ev => {
   if (ev.request.method !== 'GET') return;
+  if (new URL(ev.request.url).origin !== self.location.origin) return;
+
   ev.respondWith(
-    caches.match(ev.request).then(hit => {
-      const net = fetch(ev.request).then(res => {
+    fetch(ev.request)
+      .then(res => {
         if (res && res.ok) {
           const copy = res.clone();
           caches.open(CACHE).then(c => c.put(ev.request, copy));
         }
         return res;
-      }).catch(() => hit);
-      return hit || net;
-    })
+      })
+      .catch(() => caches.match(ev.request).then(hit =>
+        hit || caches.match('./index.html')
+      ))
   );
 });
