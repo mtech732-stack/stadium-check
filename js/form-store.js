@@ -74,10 +74,23 @@ function loadForm() {
       if (!saved.fields.some(f => f.id === def.id)) saved.fields.push(JSON.parse(JSON.stringify(def)));
     });
   }
+  /* نموذج محفوظ بنسخة أقدم قد ينقصه حقل استُحدث بعده.
+     يُستكمل من النموذج الأصلي بمطابقة المعرّف، لا بقائمة فارغة —
+     وإلّا اختفت عبارات «مطابق» من نموذج المستخدم بلا سبب ظاهر. */
+  const base = defaultForm();
+  const baseItem = id => {
+    for (const s of base.sections) {
+      const hit = s.items.find(x => x.id === id);
+      if (hit) return hit;
+    }
+    return null;
+  };
+
   saved.sections.forEach(sec => sec.items.forEach(it => {
-    if (!Array.isArray(it.phrases)) it.phrases = [];
-    if (!Array.isArray(it.phrasesOk)) it.phrasesOk = [];
     if (!it.id) it.id = newFormId('i');
+    const orig = baseItem(it.id);
+    if (!Array.isArray(it.phrases))   it.phrases   = orig ? orig.phrases.slice()   : [];
+    if (!Array.isArray(it.phrasesOk)) it.phrasesOk = orig ? orig.phrasesOk.slice() : [];
   }));
   return annotateForm(saved);
 }
