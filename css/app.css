@@ -426,3 +426,27 @@ button.link[hidden] { display: none; }
   background: var(--navy); color: #fff; text-align: center;
   font-size: 13px; padding: 10px 14px;
 }
+
+/* نافذة إرشاد حفظ PDF */
+.hintsheet {
+  position: fixed; inset: 0; z-index: 80;
+  background: rgba(18, 32, 43, .45);
+  display: flex; align-items: center; justify-content: center; padding: 18px;
+}
+.hintsheet[hidden] { display: none; }
+.hintsheet .box {
+  background: #fff; border-radius: 14px; padding: 18px 18px 14px;
+  max-width: 420px; width: 100%;
+}
+.hintsheet h3 { margin: 0 0 8px; font-size: 15.5px; color: var(--navy); }
+.hintsheet p { margin: 0; font-size: 14px; line-height: 1.75; color: var(--ink); }
+.hintsheet .acts { display: flex; gap: 8px; margin-top: 14px; }
+.hintsheet button {
+  font: inherit; font-size: 14px; padding: 11px 14px; flex: 1;
+  border: 1px solid var(--line); border-radius: 9px; background: #fff;
+  color: var(--navy); cursor: pointer;
+}
+#pdfGo { background: var(--navy); color: #fff; border-color: var(--navy); font-weight: 600; }
+
+/* ثلاثة أزرار في الشريط السفلي — تضيق قليلاً لتتّسع */
+.actionbar button { padding: 9px 11px; }

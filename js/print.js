@@ -188,6 +188,36 @@
 
   document.getElementById('btnPrint').onclick = () => { build(); window.print(); };
 
+  /* حفظ PDF يمرّ بنافذة الطباعة نفسها — لا سبيل غيرها في المتصفّح.
+     فتُشرح الخطوة الفارقة أوّل مرّة فقط، ثمّ يمضي مباشرةً بعدها. */
+  const HINT_KEY = 'sc.pdfHint';
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  const hint = document.getElementById('pdfHint');
+  const steps = isIOS
+    ? 'ستُفتح نافذة الطباعة. اضغط زرّ المشاركة أعلى النافذة، ثمّ اختر «حفظ في الملفات» — فيُحفظ التقرير ملفَّ PDF.'
+    : 'ستُفتح نافذة الطباعة. اختر من «الوجهة» أو «الطابعة»: «حفظ بصيغة PDF»، ثمّ اضغط حفظ.';
+
+  const runPrint = () => { build(); setTimeout(() => window.print(), 60); };
+
+  document.getElementById('btnPdf').onclick = () => {
+    let seen = null;
+    try { seen = localStorage.getItem(HINT_KEY); } catch (e) {}
+    if (seen) { runPrint(); return; }
+    document.getElementById('pdfSteps').textContent = steps;
+    hint.removeAttribute('hidden');
+  };
+
+  document.getElementById('pdfGo').onclick = () => {
+    try { localStorage.setItem(HINT_KEY, '1'); } catch (e) {}
+    hint.setAttribute('hidden', 'hidden');
+    runPrint();
+  };
+
+  document.getElementById('pdfCancel').onclick = () => hint.setAttribute('hidden', 'hidden');
+  hint.onclick = ev => { if (ev.target === hint) hint.setAttribute('hidden', 'hidden'); };
+
   const btnPreview = document.getElementById('btnPreview');
   btnPreview.onclick = () => {
     const on = document.body.classList.toggle('preview');
