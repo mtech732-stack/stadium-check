@@ -34,7 +34,8 @@ function blankReport(id) {
       general: '',
       extra: {}   /* قيم الحقول المضافة من صفحة التعديل */
     },
-    items: {},  /* "1.3": { s: 'fix', note: '...' } */
+    form: formSnapshot(),  /* نصوص النموذج لحظة إنشاء التقرير */
+    items: {},  /* "i-1-3": { s: 'fix', note: '...' } */
     nums: {},   /* قيم رقمية داخل البنود، مثل السعة الجماهيرية */
     meas: {}    /* جدول القياسات: { len: { v, note } } */
   };
@@ -48,6 +49,8 @@ function normalize(r, id) {
   if (!r.nums) r.nums = {};
   if (!r.meas) r.meas = {};
   if (!r.savedAt) r.savedAt = 0;
+  /* تقرير سابق للقطة: يُلقَّط الآن بالنموذج الحالي، فقد عُبِّئ عليه */
+  if (!r.form || !Array.isArray(r.form.sections)) r.form = formSnapshot();
   ['decision', 'recheck', 'general'].forEach(k => { if (!(k in r.meta)) r.meta[k] = ''; });
   if (!r.meta.extra || typeof r.meta.extra !== 'object') r.meta.extra = {};
   /* ترحيل المفاتيح الموضعية القديمة (3.5) إلى المعرّفات الثابتة (i-3-5) */
@@ -89,6 +92,11 @@ if (!currentId || !reports[currentId]) {
 }
 
 const state = reports[currentId];
+
+/* النموذج كما كان لحظة تعبئة هذا التقرير — منه يُعرض ويُطبع، لا من النموذج الحالي.
+   فتقريرٌ عُبِّئ قبل تعديلٍ يبقى شاهداً على ما فُحص عليه فعلاً. */
+annotateForm(state.form);
+const RF = state.form;
 
 /* ــــ أدوات ــــ */
 
@@ -186,7 +194,7 @@ function buildMeta() {
   wrap.appendChild(venues);
 
   /* الحقول تُبنى من تعريف النموذج، فتعديل تسمية أو إخفاء حقل يسري هنا وفي المطبوعة */
-  FIELDS.filter(f => f.enabled !== false).forEach(f => {
+  RF.fields.filter(f => f.enabled !== false).forEach(f => {
     if (f.id === 'club') {
       wrap.appendChild(field(f.label, clubSel));
       return;
@@ -230,9 +238,12 @@ function buildMeta() {
 /* ــــ بنود الفحص ــــ */
 
 /* العبارات المتاحة تتبع الحالة: «مطابق» له مجموعته، والمخالفة لها مجموعتها */
+/* نصّ البند من لقطة التقرير، أمّا العبارات الجاهزة فمن النموذج الحالي —
+   لأنّها معينُ إدخالٍ يُستحسن أن يبقى محدَّثاً، لا جزءٌ من السجلّ. */
 function phrasesFor(item, s) {
-  if (s === 'ok') return item.phrasesOk || [];
-  if (s === 'fix' || s === 'no') return item.phrases || [];
+  const cur = currentItemById(item.id) || item;
+  if (s === 'ok') return cur.phrasesOk || [];
+  if (s === 'fix' || s === 'no') return cur.phrases || [];
   return [];
 }
 
@@ -248,7 +259,8 @@ function buildItem(sec, item) {
   const ta = el('textarea', { placeholder: 'الملاحظة / الإجراء المطلوب', rows: '2' });
   /* ملاحظات أُدرجت قبل التنقيط: كلّ سطر يطابق عبارةً معروفة يُنقَّط الآن،
      فتستوي القديمة والجديدة ولا يظنّ المستخدم أنّ التنقيط لا يعمل. */
-  const known = (item.phrases || []).concat(item.phrasesOk || []);
+  const cur0 = currentItemById(item.id) || item;
+  const known = (cur0.phrases || []).concat(cur0.phrasesOk || []);
   if (rec.note && known.length) {
     const fixed = rec.note.split('\n').map(line => {
       const t = line.trim();
@@ -388,7 +400,7 @@ function buildItem(sec, item) {
 
 function buildSections() {
   const main = $('#sections');
-  SECTIONS.forEach(sec => {
+  RF.sections.forEach(sec => {
     const head = el('header', {}, [
       el('div', { class: 'num', text: String(sec._n) }),
       el('h2', { text: sec.title }),
@@ -406,13 +418,13 @@ function buildMeasurements() {
   const body = $('#measBody');
 
   /* نموذج بلا قياسات — تُخفى البطاقة كلّها بدل أن تظهر فارغة */
-  if (!MEASUREMENTS.length) {
+  if (!RF.measurements.length) {
     const card = body.closest('section');
     if (card) card.setAttribute('hidden', 'hidden');
     return;
   }
 
-  MEASUREMENTS.forEach(ms => {
+  RF.measurements.forEach(ms => {
     const rec = state.meas[ms.id] || (state.meas[ms.id] = { v: '', note: '' });
 
     const warn = el('div', { class: 'warn', hidden: 'hidden' });
@@ -470,7 +482,7 @@ const DECISIONS = [
 ];
 
 function outOfRange() {
-  return MEASUREMENTS.filter(ms => {
+  return RF.measurements.filter(ms => {
     const rec = state.meas[ms.id];
     if (!rec || rec.v === '') return false;
     const v = parseFloat(rec.v);
@@ -483,7 +495,7 @@ function outOfRange() {
 function evaluate() {
   const counts = {};
   STATUSES.forEach(st => counts[st.id] = 0);
-  const total = SECTIONS.reduce((a, s) => a + s.items.length, 0);
+  const total = RF.sections.reduce((a, s) => a + s.items.length, 0);
   let answered = 0;
 
   Object.values(state.items).forEach(r => {
@@ -511,7 +523,7 @@ function buildSummary() {
   const missText = el('span', { id: 'missText' });
   const missBtn = el('button', { type: 'button', class: 'link', text: 'انتقل إلى أوّل بند ناقص' });
   missBtn.onclick = () => {
-    for (const sec of SECTIONS) {
+    for (const sec of RF.sections) {
       for (const it of sec.items) {
         if (!(state.items[it.id] || {}).s) {
           const node = document.querySelector(`[data-key=""]`);
@@ -622,7 +634,7 @@ function refreshTally() {
   const counts = ev.counts, total = ev.total, answered = ev.answered;
 
   /* عدّاد لكلّ محور — يكشف المحور الناقص بنظرة */
-  SECTIONS.forEach(sec => {
+  RF.sections.forEach(sec => {
     const done = sec.items.filter(it => (state.items[it.id] || {}).s).length;
     const badge = $('#sb' + sec.id);
     if (!badge) return;
@@ -640,8 +652,8 @@ function refreshTally() {
 
 /* ــــ الإقلاع ــــ */
 
-$('#appTitle').textContent = FORM_META.shortTitle || FORM_META.title;
-document.title = (FORM_META.shortTitle || FORM_META.title) + ' — ' + FORM_META.org;
+$("#appTitle").textContent = RF.meta.shortTitle || RF.meta.title;
+document.title = (RF.meta.shortTitle || RF.meta.title) + " — " + RF.meta.org;
 
 buildMeta();
 buildSections();
@@ -652,13 +664,36 @@ save();
 
 /* بطاقة تشخيص: أيّ ملفّات يشغّلها الجهاز، ومن أين يقرأ النموذج.
    سطرٌ واحد يغني عن تخمين سبب اختلاف جهاز عن جهاز. */
-const BUILD = 20;
+const BUILD = 21;
+
+/* تقرير عُبِّئ على نموذج أقدم: يبقى بنصوصه ما لم يطلب المستخدم نقله */
+const notice = $('#formNotice');
+if (notice && RF.v !== FORM_VERSION) {
+  const btn = el('button', { type: 'button', class: 'primary', text: 'انقله إلى النموذج الحالي' });
+  btn.onclick = () => {
+    if (!confirm('نقل هذا التقرير إلى نصوص النموذج الحالي؟ إجاباتك وملاحظاتك تبقى كما هي.')) return;
+    state.form = formSnapshot();
+    state.savedAt = Date.now();
+    reports[currentId] = state;
+    store.write(KEY_REPORTS, reports);
+    location.reload();
+  };
+  const keep = el('button', { type: 'button', text: 'أبقِه كما فُحص' });
+  keep.onclick = () => { notice.textContent = ''; };
+
+  notice.appendChild(el('div', { class: 'notice' }, [
+    el('div', { class: 'txt', text:
+      `هذا التقرير عُبِّئ على نموذج أقدم (إصدار ${RF.v || '؟'})، ويُعرض ويُطبع بنصوصه كما فُحص. ` +
+      `والنموذج الرسمي الآن إصدار ${FORM_VERSION}.` }),
+    el('div', { class: 'acts' }, [btn, keep])
+  ]));
+}
 
 const buildInfo = $('#buildInfo');
 if (buildInfo) {
   buildInfo.innerHTML =
     `نسخة التطبيق: <b>${BUILD}</b> · النموذج: <b>الرسمي ${FORM_VERSION}</b> · ` +
-    `<b>${SECTIONS.reduce((a, s) => a + s.items.length, 0)}</b> بنداً`;
+    `<b>${RF.sections.reduce((a, s) => a + s.items.length, 0)}</b> بنداً · نموذج التقرير: <b>${RF.v || '؟'}</b>`;
 }
 
 

@@ -12,7 +12,7 @@
   }
 
   function progressOf(r) {
-    const total = SECTIONS.reduce((a, s) => a + s.items.length, 0);
+    const total = ((r.form && r.form.sections) || SECTIONS).reduce((a, s) => a + s.items.length, 0);
     const done = Object.values(r.items || {}).filter(x => x.s).length;
     return { done, total };
   }
@@ -20,7 +20,7 @@
   function decisionOf(r) {
     const counts = { ok: 0, fix: 0, no: 0 };
     Object.values(r.items || {}).forEach(x => { if (counts[x.s] !== undefined) counts[x.s]++; });
-    const bad = MEASUREMENTS.some(ms => {
+    const bad = ((r.form && r.form.measurements) || MEASUREMENTS).some(ms => {
       const rec = (r.meas || {})[ms.id];
       if (!rec || rec.v === '') return false;
       const v = parseFloat(rec.v);

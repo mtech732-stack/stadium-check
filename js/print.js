@@ -39,7 +39,7 @@
       if (f.type === 'date') return fmtDate((m.extra || {})[f.id]);
       return dash((m.extra || {})[f.id]);
     };
-    const cells = FIELDS.filter(f => f.enabled !== false).map(f => [f.label, value(f)]);
+    const cells = state.form.fields.filter(f => f.enabled !== false).map(f => [f.label, value(f)]);
     const tb = P('tbody');
     for (let i = 0; i < cells.length; i += 3) {
       const row = P('tr');
@@ -90,7 +90,7 @@
   /* جدول القياسات */
   function measTable() {
     const tb = P('tbody');
-    MEASUREMENTS.forEach(ms => {
+    state.form.measurements.forEach(ms => {
       const rec = state.meas[ms.id] || { v: '', note: '' };
       tb.appendChild(P('tr', {}, [
         P('td', { text: ms.label, class: 'c-q' }),
@@ -167,19 +167,19 @@
     const root = document.getElementById('printView');
     root.textContent = '';
 
-    const crest = P('img', { class: 'crest', src: 'assets/kfa-logo.png', alt: FORM_META.org });
+    const crest = P('img', { class: 'crest', src: 'assets/kfa-logo.png', alt: state.form.meta.org });
     root.appendChild(P('header', { class: 'p-head' }, [
       crest,
-      P('div', { class: 'org', text: FORM_META.org }),
-      P('h1', { text: FORM_META.title }),
+      P('div', { class: 'org', text: state.form.meta.org }),
+      P('h1', { text: state.form.meta.title }),
       P('div', { class: 'rule' }, [
         P('span', { class: 'b' }), P('span', { class: 'g' }), P('span', { class: 'r' })
       ])
     ]));
 
     root.appendChild(metaTable());
-    SECTIONS.forEach(sec => root.appendChild(sectionTable(sec)));
-    if (MEASUREMENTS.length) root.appendChild(measTable());
+    state.form.sections.forEach(sec => root.appendChild(sectionTable(sec)));
+    if (state.form.measurements.length) root.appendChild(measTable());
     root.appendChild(summaryBlock());
     root.appendChild(signatures());
   }

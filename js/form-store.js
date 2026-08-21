@@ -125,11 +125,52 @@ function isFormCustomized() {
   try { return !!localStorage.getItem(KEY_FORM); } catch (e) { return false; }
 }
 
-/* هل النسخة المحفوظة أقدم من الرسمية؟ يُقرأ في الواجهة لعرض إشعار التحديث. */
+/* هل النسخة المحفوظة أقدم من الرسمية؟ (باقٍ للتوافق) */
 var FORM_OUTDATED = false;
 
-/* النموذج الفعّال + الأسماء التي يستعملها بقيّة التطبيق */
+/* النموذج الفعّال */
 var FORM = loadForm();
+
+/* لقطة خفيفة من النموذج تُحفظ داخل كلّ تقرير، فيبقى التقرير مكتفياً بذاته:
+   يُعرض ويُطبع بنصوص النموذج التي عُبِّئ عليها، لا بنصوصه بعد التحديث.
+   العبارات الجاهزة لا تُلقَّط لأنّها معينُ إدخالٍ لا جزءٌ من السجلّ. */
+function formSnapshot() {
+  return {
+    v: FORM_VERSION,
+    meta: {
+      org: FORM.meta.org,
+      title: FORM.meta.title,
+      shortTitle: FORM.meta.shortTitle
+    },
+    fields: FORM.fields.map(f => ({
+      id: f.id, label: f.label, type: f.type,
+      enabled: f.enabled !== false, builtin: !!f.builtin
+    })),
+    sections: FORM.sections.map(s => ({
+      id: s.id,
+      title: s.title,
+      items: s.items.map(i => {
+        const o = { id: i.id, text: i.text };
+        if (i.num) o.num = { id: i.num.id, label: i.num.label, unit: i.num.unit };
+        return o;
+      })
+    })),
+    measurements: FORM.measurements.map(m => ({
+      id: m.id, label: m.label, unit: m.unit, ref: m.ref, min: m.min, max: m.max
+    }))
+  };
+}
+
+/* البند في النموذج الحالي — منه تُؤخذ العبارات الجاهزة لتقرير قديم */
+function currentItemById(id) {
+  for (const s of FORM.sections) {
+    const hit = s.items.find(x => x.id === id);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+/* النموذج الفعّال + الأسماء التي يستعملها بقيّة التطبيق */
 var FORM_META = FORM.meta;
 var FIELDS = FORM.fields;
 var SECTIONS = FORM.sections;
