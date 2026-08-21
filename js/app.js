@@ -55,7 +55,10 @@ function normalize(r, id) {
     const m = k.match(/^(\d+)\.(\d+)$/);
     if (m) { r.items['i-' + m[1] + '-' + m[2]] = r.items[k]; delete r.items[k]; }
   });
-  Object.values(r.items).forEach(x => { if (x.s === 'na') x.s = ''; });
+  Object.values(r.items).forEach(x => {
+    if (x.s === 'na') x.s = '';
+    if (!Array.isArray(x.sel)) x.sel = [];
+  });
   return r;
 }
 
@@ -106,6 +109,17 @@ function bandCount(n) {
 
 /* مطابقة الفعل/الوصف للعدد: مفرد · مثنّى · جمع */
 function agree(n, one, two, many) { return n === 1 ? one : n === 2 ? two : many; }
+
+/* نصّ الملاحظة كما يُعرض ويُطبع: العبارات المختارة ثمّ ما كُتب حرّاً */
+function noteText(rec) {
+  if (!rec) return '';
+  const parts = [];
+  if (rec.sel && rec.sel.length) {
+    parts.push((rec.s === 'ok' ? 'مطابق: ' : '') + rec.sel.join(' · '));
+  }
+  if (rec.note && rec.note.trim()) parts.push(rec.note.trim());
+  return parts.join(' — ');
+}
 
 function seasonOf(dateStr) {
   const d = dateStr ? new Date(dateStr) : new Date();
@@ -214,32 +228,52 @@ function buildMeta() {
 
 /* ــــ بنود الفحص ــــ */
 
+/* العبارات المتاحة تتبع الحالة: «مطابق» له مجموعته، والمخالفة لها مجموعتها */
+function phrasesFor(item, s) {
+  if (s === 'ok') return item.phrasesOk || [];
+  if (s === 'fix' || s === 'no') return item.phrases || [];
+  return [];
+}
+
 function buildItem(sec, item) {
   const key = item.id;
-  const rec = state.items[key] || (state.items[key] = { s: '', note: '' });
+  const rec = state.items[key] || (state.items[key] = { s: '', sel: [], note: '' });
+  if (!Array.isArray(rec.sel)) rec.sel = [];
 
-  const autoOpen = () => rec.s === 'fix' || rec.s === 'no' || !!rec.note;
+  const autoOpen = () =>
+    rec.s === 'fix' || rec.s === 'no' || !!rec.note || rec.sel.length > 0 ||
+    (rec.s === 'ok' && phrasesFor(item, 'ok').length > 0);
+
   const note = el('div', { class: 'note', hidden: autoOpen() ? null : 'hidden' });
   const ta = el('textarea', { placeholder: 'الملاحظة / الإجراء المطلوب', rows: '2' });
   ta.value = rec.note;
-  note.appendChild(ta);
 
-  if (item.phrases && item.phrases.length) {
-    const chips = el('div', { class: 'phrases' }, [el('div', { class: 'lbl', text: 'عبارات جاهزة — انقر لإضافتها' })]);
-    item.phrases.forEach(p => {
-      const b = el('button', { type: 'button', text: p });
+  /* العبارات تُختار وتُلغى بالنقر، ويُختار منها أكثر من واحدة */
+  const chips = el('div', { class: 'phrases' });
+
+  function renderChips() {
+    chips.textContent = '';
+    const list = phrasesFor(item, rec.s);
+    if (!list.length) return;
+    chips.appendChild(el('div', { class: 'lbl', text:
+      rec.s === 'ok' ? 'اختر ما ينطبق — يُسجَّل مسبوقاً بكلمة «مطابق»' : 'اختر ما ينطبق — ولك أكثر من عبارة' }));
+    list.forEach(p => {
+      const on = rec.sel.indexOf(p) > -1;
+      const b = el('button', { type: 'button', text: p, 'aria-pressed': on ? 'true' : 'false' });
       b.onclick = () => {
-        const cur = ta.value.trim();
-        ta.value = cur ? cur + ' ' + p : p;
-        rec.note = ta.value;
-        ta.focus();
+        const i = rec.sel.indexOf(p);
+        if (i > -1) rec.sel.splice(i, 1); else rec.sel.push(p);
+        b.setAttribute('aria-pressed', rec.sel.indexOf(p) > -1 ? 'true' : 'false');
         syncNote();
         save();
       };
       chips.appendChild(b);
     });
-    note.appendChild(chips);
   }
+
+  note.appendChild(chips);
+  note.appendChild(ta);
+  renderChips();
 
   const seg = el('div', { class: 'seg', role: 'group' });
 
@@ -252,8 +286,11 @@ function buildItem(sec, item) {
   const syncNote = () => {
     const open = !note.hasAttribute('hidden');
     noteBtn.setAttribute('aria-pressed', open ? 'true' : 'false');
-    noteBtn.textContent = rec.note ? 'ملاحظة ✓' : 'ملاحظة';
+    noteBtn.textContent = (rec.note || rec.sel.length) ? 'ملاحظة ✓' : 'ملاحظة';
   };
+
+  /* فئة العبارات: «مطابق» فئة، و«يحتاج معالجة/غير مطابق» فئة أخرى */
+  const groupOf = s => s === 'ok' ? 'ok' : (s ? 'issue' : '');
 
   STATUSES.forEach(st => {
     const b = el('button', {
@@ -262,9 +299,13 @@ function buildItem(sec, item) {
       'aria-label': st.label
     });
     b.onclick = () => {
+      const before = groupOf(rec.s);
       rec.s = rec.s === st.id ? '' : st.id;
+      /* تغيّرت فئة العبارات ⟵ تُلغى الاختيارات السابقة لأنّها من قائمة أخرى */
+      if (groupOf(rec.s) !== before) rec.sel = [];
       seg.querySelectorAll('button[data-s]:not([data-s="note"])').forEach(x =>
         x.setAttribute('aria-pressed', x.dataset.s === rec.s ? 'true' : 'false'));
+      renderChips();
       if (autoOpen()) note.removeAttribute('hidden');
       else note.setAttribute('hidden', 'hidden');
       syncNote();
@@ -276,7 +317,7 @@ function buildItem(sec, item) {
 
   noteBtn.onclick = () => {
     if (note.hasAttribute('hidden')) { note.removeAttribute('hidden'); ta.focus(); }
-    else if (!rec.note) { note.setAttribute('hidden', 'hidden'); }
+    else if (!rec.note && !rec.sel.length) { note.setAttribute('hidden', 'hidden'); }
     syncNote();
   };
   seg.appendChild(noteBtn);
@@ -322,6 +363,13 @@ function buildSections() {
 
 function buildMeasurements() {
   const body = $('#measBody');
+
+  /* نموذج بلا قياسات — تُخفى البطاقة كلّها بدل أن تظهر فارغة */
+  if (!MEASUREMENTS.length) {
+    const card = body.closest('section');
+    if (card) card.setAttribute('hidden', 'hidden');
+    return;
+  }
 
   MEASUREMENTS.forEach(ms => {
     const rec = state.meas[ms.id] || (state.meas[ms.id] = { v: '', note: '' });

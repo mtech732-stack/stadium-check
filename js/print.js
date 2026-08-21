@@ -77,7 +77,7 @@
         P('td', { text: rec.s === 'ok' ? '✓' : '', class: 'c-s mark' }),
         P('td', { text: rec.s === 'fix' ? '✓' : '', class: 'c-s mark' }),
         P('td', { text: rec.s === 'no' ? '✓' : '', class: 'c-s mark' }),
-        P('td', { text: rec.note || '', class: 'c-note' })
+        P('td', { text: noteText(rec), class: 'c-note' })
       ]));
     });
 
@@ -174,7 +174,7 @@
 
     root.appendChild(metaTable());
     SECTIONS.forEach(sec => root.appendChild(sectionTable(sec)));
-    root.appendChild(measTable());
+    if (MEASUREMENTS.length) root.appendChild(measTable());
     root.appendChild(summaryBlock());
     root.appendChild(signatures());
   }

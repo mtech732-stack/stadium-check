@@ -21,7 +21,8 @@ function defaultForm() {
         const copy = {
           id: 'i-' + (si + 1) + '-' + (ii + 1),
           text: it.text,
-          phrases: (it.phrases || []).slice()
+          phrases: (it.phrases || []).slice(),
+          phrasesOk: (it.phrasesOk || []).slice()
         };
         if (it.num) copy.num = JSON.parse(JSON.stringify(it.num));
         return copy;
@@ -75,6 +76,7 @@ function loadForm() {
   }
   saved.sections.forEach(sec => sec.items.forEach(it => {
     if (!Array.isArray(it.phrases)) it.phrases = [];
+    if (!Array.isArray(it.phrasesOk)) it.phrasesOk = [];
     if (!it.id) it.id = newFormId('i');
   }));
   return annotateForm(saved);

@@ -108,19 +108,24 @@ function buildItem(sec, item, idx) {
       `يحمل هذا البند حقلاً رقمياً: ${item.num.label} (${item.num.unit}). تعديله في مرحلة لاحقة.` }));
   }
 
-  body.appendChild(el('div', { class: 'ed-sub', text: 'العبارات الجاهزة' }));
+  /* مجموعتا عبارات: ما يظهر عند «مطابق»، وما يظهر عند المخالفة */
+  const group = (key, label, addLabel) => {
+    if (!Array.isArray(item[key])) item[key] = [];
+    body.appendChild(el('div', { class: 'ed-sub', text: label }));
+    item[key].forEach((p, pi) => {
+      const inp = el('input', { type: 'text', value: p });
+      inp.oninput = () => { item[key][pi] = inp.value; persist(false); };
+      const rm = el('button', { type: 'button', text: '×', 'aria-label': 'حذف العبارة' });
+      rm.onclick = () => { item[key].splice(pi, 1); persist(true); };
+      body.appendChild(el('div', { class: 'ed-phrase' }, [inp, rm]));
+    });
+    const add = el('button', { type: 'button', class: 'ed-add small', text: addLabel });
+    add.onclick = () => { item[key].push(''); persist(true); };
+    body.appendChild(add);
+  };
 
-  (item.phrases || []).forEach((p, pi) => {
-    const inp = el('input', { type: 'text', value: p });
-    inp.oninput = () => { item.phrases[pi] = inp.value; persist(false); };
-    const rm = el('button', { type: 'button', text: '×', 'aria-label': 'حذف العبارة' });
-    rm.onclick = () => { item.phrases.splice(pi, 1); persist(true); };
-    body.appendChild(el('div', { class: 'ed-phrase' }, [inp, rm]));
-  });
-
-  const addP = el('button', { type: 'button', class: 'ed-add small', text: '+ عبارة جاهزة' });
-  addP.onclick = () => { item.phrases.push(''); persist(true); };
-  body.appendChild(addP);
+  group('phrases', 'عبارات «يحتاج معالجة» و«غير مطابق»', '+ عبارة مخالفة');
+  group('phrasesOk', 'عبارات «مطابق»', '+ عبارة مطابقة');
 
   return el('div', { class: 'ed-item' }, [head, body]);
 }
@@ -434,6 +439,10 @@ function diffLines() {
       const gone  = (oi.phrases || []).filter(p => !(it.phrases || []).includes(p));
       added.forEach(p => secChanges.push(`    ${ref} + عبارة: ${p}`));
       gone.forEach(p => secChanges.push(`    ${ref} − عبارة: ${p}`));
+      const addedOk = (it.phrasesOk || []).filter(p => !(oi.phrasesOk || []).includes(p));
+      const goneOk  = (oi.phrasesOk || []).filter(p => !(it.phrasesOk || []).includes(p));
+      addedOk.forEach(p => secChanges.push(`    ${ref} + عبارة مطابق: ${p}`));
+      goneOk.forEach(p => secChanges.push(`    ${ref} − عبارة مطابق: ${p}`));
     });
 
     old.items.forEach(oi => {
